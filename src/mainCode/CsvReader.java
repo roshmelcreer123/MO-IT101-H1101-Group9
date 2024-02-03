@@ -9,7 +9,7 @@ public class CsvReader {
 
 	public static void main(String[] args) {
 		// Relative path to the .csv file from the project directory
-        String path = "src/excelFiles/SacramentocrimeJanuary2006.csv";
+        String path = "src/resources/motorPhEmployeeData.csv";
         // String variable to store each line read from the file
         String line = "";
         
@@ -24,7 +24,27 @@ public class CsvReader {
                 String[] csvValues = line.split(",");
                 
                 // Display specific values from the CSV line
-                System.out.println("Date: " + csvValues[0] + "; Crime Description: " + csvValues[5]);
+                System.out.println(
+                		"Employee #: " + csvValues[0] + 
+                		"; Last Name: " + csvValues[1] +
+                		"; First Name: " + csvValues[2] +
+                		"; Birthday: " + csvValues[3] +		
+                		"; Address: " + csvValues[4] +
+                		"; Phone Number: " + csvValues[5] +
+                		"; SSS #: " + csvValues[6] +
+                		"; Philhealth #: " + csvValues[7] +
+                		"; Tin #: " + csvValues[8] +
+                		"; Pag-Ibig #: " + csvValues[9] +
+                		"; Status: " + csvValues[10] +
+                		"; Position: " + csvValues[11] +
+                		"; Immediate Supervisor: " + csvValues[12] +
+                		"; Basic Salary: " + csvValues[13] +
+                		"; Rice Subsidy: " + csvValues[14] +
+                		"; Phone Allowance: " + csvValues[15] +
+                		"; Clothing Allowance: " + csvValues[16] +
+                		"; Gross Semi-monthly Rate: " + csvValues[17] +
+                		"; Gross Hourly Rate: " + csvValues[18]
+                		);
             }
             
             // Close the BufferedReader to release system resources
