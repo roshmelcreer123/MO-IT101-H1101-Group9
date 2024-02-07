@@ -11,25 +11,32 @@ public class CalculateGrossSalary {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        // Paths to employee data and attendance record files
         String employeeDataPath = "src/resources/motorPhEmployeeData.csv";
         String attendanceRecordPath = "src/resources/motorPhAttendanceRecord.csv";
 
+        // Prompt the user to enter the year and month
         System.out.print("Enter year and month (YYYY/MM) to calculate gross salaries: ");
         String yearMonth = scanner.next();
 
+        // Read hourly rates for each employee from the employee data file
         Map<String, Double> hourlyRates = readEmployeeData(employeeDataPath);
+        // Calculate total hours worked for each employee for the specified month from the attendance record file
         Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth(attendanceRecordPath, yearMonth);
         
+        // Calculate gross salary for each employee and display the results
         for (String employeeId : hourlyRates.keySet()) {
             double hourlyRate = hourlyRates.getOrDefault(employeeId, 0.0);
             double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
             double grossSalary = hourlyRate * hoursWorked;
+            // Output employee ID, total hours worked, and gross salary
             System.out.println("Employee ID: " + employeeId + ", Hours Worked: " + hoursWorked + ", Gross Salary: " + grossSalary);
         }
         
         scanner.close();
     }
 
+    // Read employee data from a CSV file and store hourly rates in a map
     private static Map<String, Double> readEmployeeData(String path) {
         Map<String, Double> hourlyRates = new HashMap<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -47,6 +54,7 @@ public class CalculateGrossSalary {
         return hourlyRates;
     }
 
+    // Calculate total hours worked for each employee for a given month from the attendance record file
     private static Map<String, Double> calculateTotalHoursWorkedForMonth(String path, String yearMonth) {
         Map<String, Double> totalHours = new HashMap<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -58,6 +66,7 @@ public class CalculateGrossSalary {
                 String date = data[3];
                 double hoursWorked = calculateHoursWorked(data[4], data[5]);
 
+                // Check if the date falls within the specified year and month
                 if (isDateInYearMonth(date, yearMonth)) {
                     totalHours.put(employeeId, totalHours.getOrDefault(employeeId, 0.0) + hoursWorked);
                 }
@@ -68,6 +77,7 @@ public class CalculateGrossSalary {
         return totalHours;
     }
 
+    // Check if a given date falls within the specified year and month
     private static boolean isDateInYearMonth(String date, String yearMonth) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
         Date recordDate = sdf.parse(date);
@@ -79,6 +89,7 @@ public class CalculateGrossSalary {
         return recordYearMonth.equals(yearMonth);
     }
 
+    // Calculate the difference in hours between two given times
     private static double calculateHoursWorked(String timeIn, String timeOut) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         Date dateIn = sdf.parse(timeIn);
