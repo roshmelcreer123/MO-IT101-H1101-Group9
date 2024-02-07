@@ -48,7 +48,7 @@ public class CsvReader {
         }
     }
 
-    private static void viewEntireTable(String path) {
+    public static void viewEntireTable(String path) {
         try {
             // Create a BufferedReader to read the file
             BufferedReader br = new BufferedReader(new FileReader(path));
@@ -69,7 +69,7 @@ public class CsvReader {
         }
     }
 
-    private static void searchForEmployee(String path, String desiredEmployeeId) {
+    public static void searchForEmployee(String path, String desiredEmployeeId) {
         try {
             // Create a BufferedReader to read the file
             BufferedReader br = new BufferedReader(new FileReader(path));
