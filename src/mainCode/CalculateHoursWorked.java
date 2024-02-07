@@ -72,4 +72,6 @@ public class CalculateHoursWorked {
             return "Failed to calculate hours worked for this record.";
         }
     }
+    
+    // Need to add total work hours per week and per month
 }
