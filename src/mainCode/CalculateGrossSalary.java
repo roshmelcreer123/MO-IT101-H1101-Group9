@@ -11,54 +11,58 @@ public class CalculateGrossSalary {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        // Paths to employee data and attendance record files
+        
+        // Define the file paths for the employee data and attendance records.
         String employeeDataPath = "src/resources/motorPhEmployeeData.csv";
         String attendanceRecordPath = "src/resources/motorPhAttendanceRecord.csv";
 
-        // Prompt the user to enter the year and month
+        // Ask the user to input the target year and month for salary calculation.
         System.out.print("Enter year and month (YYYY/MM) to calculate gross salaries: ");
         String yearMonth = scanner.next();
 
-        // Read hourly rates for each employee from the employee data file
+        // Read hourly rates from the employee data file and store them in a map.
         Map<String, Double> hourlyRates = readEmployeeData(employeeDataPath);
-        // Calculate total hours worked for each employee for the specified month from the attendance record file
+        
+        // Calculate the total hours worked for each employee for the specified month.
         Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth(attendanceRecordPath, yearMonth);
         
-        // Calculate gross salary for each employee and display the results
+        // Calculate and display the gross salary for each employee.
         for (String employeeId : hourlyRates.keySet()) {
             double hourlyRate = hourlyRates.getOrDefault(employeeId, 0.0);
             double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
             double grossSalary = hourlyRate * hoursWorked;
-            // Output employee ID, total hours worked, and gross salary
             System.out.println("Employee ID: " + employeeId + ", Hours Worked: " + hoursWorked + ", Gross Salary: " + grossSalary);
         }
         
         scanner.close();
     }
 
-    // Read employee data from a CSV file and store hourly rates in a map
+    // Reads the employee data file and extracts hourly rates, storing them in a HashMap.
     private static Map<String, Double> readEmployeeData(String path) {
+    	
         Map<String, Double> hourlyRates = new HashMap<>();
+        
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            br.readLine(); // Skip the header line of the CSV file.
             String line;
-            br.readLine(); // Skip header
             while ((line = br.readLine()) != null) {
                 String[] data = line.split(",");
                 String employeeId = data[0];
-                double hourlyRate = Double.parseDouble(data[data.length - 1]); // Assuming hourly rate is the last column
-                hourlyRates.put(employeeId, hourlyRate);
+                double hourlyRate = Double.parseDouble(data[data.length - 1]); // Assuming hourly rate is the last column.
+                hourlyRates.put(employeeId, hourlyRate); // Store the employee ID and hourly rate in the map.
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
         return hourlyRates;
     }
 
-    // Calculate total hours worked for each employee for a given month from the attendance record file
+    // Calculates total hours worked for each employee for a given month.
     private static Map<String, Double> calculateTotalHoursWorkedForMonth(String path, String yearMonth) {
         Map<String, Double> totalHours = new HashMap<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-            br.readLine(); // Skip header
+            br.readLine(); // Skip the header line of the CSV file.
             String line;
             while ((line = br.readLine()) != null) {
                 String[] data = line.split(",");
@@ -66,8 +70,9 @@ public class CalculateGrossSalary {
                 String date = data[3];
                 double hoursWorked = calculateHoursWorked(data[4], data[5]);
 
-                // Check if the date falls within the specified year and month
+                // Check if the record's date falls in the specified year and month.
                 if (isDateInYearMonth(date, yearMonth)) {
+                    // If so, add the hours worked to the total for that employee.
                     totalHours.put(employeeId, totalHours.getOrDefault(employeeId, 0.0) + hoursWorked);
                 }
             }
@@ -77,24 +82,40 @@ public class CalculateGrossSalary {
         return totalHours;
     }
 
-    // Check if a given date falls within the specified year and month
+    // Determines if a date string falls within a specified year and month.
     private static boolean isDateInYearMonth(String date, String yearMonth) throws ParseException {
+        // Define the format for parsing the date string.
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+        
+        // Parse the date string into a Date object.
         Date recordDate = sdf.parse(date);
+        
+        // Use a Calendar to extract the year and month from the parsed date.
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(recordDate);
         int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH) + 1; // Month is 0-indexed
+        int month = calendar.get(Calendar.MONTH) + 1; // Adjust for 0-indexed months (0-11).
+        
+        // Construct a string in the format "YYYY/MM" from the year and month.
         String recordYearMonth = year + "/" + String.format("%02d", month);
+        
+        // Return true if the constructed string matches the input yearMonth, false otherwise.
         return recordYearMonth.equals(yearMonth);
     }
 
-    // Calculate the difference in hours between two given times
+    // Calculates the number of hours worked between two time strings.
     private static double calculateHoursWorked(String timeIn, String timeOut) throws ParseException {
+        // Define the format for parsing the time strings.
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        
+        // Parse the time-in and time-out strings into Date objects.
         Date dateIn = sdf.parse(timeIn);
         Date dateOut = sdf.parse(timeOut);
+        
+        // Calculate the difference in milliseconds between time-out and time-in.
         long difference = dateOut.getTime() - dateIn.getTime();
+        
+        // Convert the difference from milliseconds to hours and return the result.
         return (double) difference / (1000 * 60 * 60);
     }
 }
