@@ -115,16 +115,22 @@ public class CsvReader {
             String line;
             boolean employeeFound = false;
 
-            // Print header
-            System.out.printf(formatString, "Employee #", "Last Name", "First Name", "Birthday", "Address", "Phone Number", "SSS #", "Philhealth #", "TIN #", "Pag-ibig #", "Status", "Position", "Immediate Supervisor", "Basic Salary", "Rice Subsidy", "Phone Allowance", "Clothing Allowance", "Gross Semi-monthly Rate", "Hourly Rate");
+            // We delay printing the header until we find a match.
+            String header = String.format(formatString, "Employee #", "Last Name", "First Name", "Birthday", 
+            											"Address", "Phone Number", "SSS #", "Philhealth #", "TIN #", "Pag-ibig #", 
+            											"Status", "Position", "Immediate Supervisor", "Basic Salary", "Rice Subsidy", 
+            											"Phone Allowance", "Clothing Allowance", "Gross Semi-monthly Rate", "Hourly Rate");
 
             while ((line = br.readLine()) != null) {
                 List<String> values = parseCsvLine(line);
 
                 if (!values.isEmpty() && values.get(0).equals(desiredEmployeeId)) {
-                    // Assuming the first value is the Employee #
+                    // Print the header only if a matching employee is found
+                    if (!employeeFound) {
+                        System.out.print(header); // Print the header now
+                        employeeFound = true;
+                    }
                     System.out.printf(formatString, values.toArray(new String[0]));
-                    employeeFound = true;
                     break; // Break out of the loop once the employee is found
                 }
             }
@@ -139,6 +145,5 @@ public class CsvReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    	}
     }
-
-}
