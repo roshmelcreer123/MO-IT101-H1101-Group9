@@ -60,22 +60,27 @@ public class CalculateGrossSalary {
 
     // Calculates total hours worked for each employee for a given month.
     private static Map<String, Double> calculateTotalHoursWorkedForMonth(String path, String yearMonth) {
-        Map<String, Double> totalHours = new HashMap<>();
+       
+    	Map<String, Double> totalHours = new HashMap<>();
+        
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             br.readLine(); // Skip the header line of the CSV file.
             String line;
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(",");
-                String employeeId = data[0];
-                String date = data[3];
-                double hoursWorked = calculateHoursWorked(data[4], data[5]);
+            
+            	while ((line = br.readLine()) != null) {
+                	
+            			String[] data = line.split(",");
+            			String employeeId = data[0];
+            			String date = data[3];
+            			double hoursWorked = calculateHoursWorked(data[4], data[5]);
 
-                // Check if the record's date falls in the specified year and month.
-                if (isDateInYearMonth(date, yearMonth)) {
-                    // If so, add the hours worked to the total for that employee.
-                    totalHours.put(employeeId, totalHours.getOrDefault(employeeId, 0.0) + hoursWorked);
-                }
-            }
+            			// Check if the record's date falls in the specified year and month.
+            			if (isDateInYearMonth(date, yearMonth)) {
+            				// If so, add the hours worked to the total for that employee.
+            					totalHours.put(employeeId, totalHours.getOrDefault(employeeId, 0.0) + hoursWorked);
+            			}
+            	}
+            
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
