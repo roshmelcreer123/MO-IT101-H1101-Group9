@@ -8,6 +8,10 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class MainCode {
+	
+	private static final double RICE_SUBSIDY = 1500.0;
+    private static final double PHONE_ALLOWANCE = 2000.0;
+    private static final double CLOTHING_ALLOWANCE = 1000.0;
 
     // Main method - Entry point of the program
     public static void main(String[] args) {
@@ -235,11 +239,28 @@ public class MainCode {
     }
     
     private static void calculateAndDisplayGrossSalaries(Map<String, Double> hourlyRates, Map<String, Double> totalHoursWorked) {
-        for (String employeeId : hourlyRates.keySet()) {
+    	for (String employeeId : hourlyRates.keySet()) {
             double hourlyRate = hourlyRates.getOrDefault(employeeId, 0.0);
             double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
-            double grossSalary = hourlyRate * hoursWorked;
-            System.out.println("Employee ID: " + employeeId + ", Hours Worked: " + hoursWorked + ", Gross Salary: " + grossSalary);
+
+            // Calculate prorated salary (total hrs worked x hourly pay)
+            double proratedSalary = hourlyRate * hoursWorked;
+            String formattedHoursWorked = String.format("%.2f", hoursWorked);
+            String formattedProratedSalary = String.format("%,.2f", proratedSalary);
+
+            // Calculate and format total monthly allowances
+            double totalMonthlyAllowance = RICE_SUBSIDY + PHONE_ALLOWANCE + CLOTHING_ALLOWANCE;
+            String formattedTotalMonthlyAllowance = String.format("%,.2f", totalMonthlyAllowance);
+
+            // Calculate and format gross salary (prorated salary + monthly allowances)
+            double grossSalary = proratedSalary + totalMonthlyAllowance;
+            String formattedGrossSalary = String.format("%,.2f", grossSalary);
+
+
+            // Display the result with the total gross salary including allowances
+            System.out.println("Employee ID: " + employeeId + "; Hours Worked: " + formattedHoursWorked +
+                    "; Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " +
+                    formattedTotalMonthlyAllowance + "; Gross Salary: " + formattedGrossSalary);
         }
     }
 
