@@ -130,7 +130,7 @@ public class CsvReader {
                         System.out.print(header); // Print the header now
                         employeeFound = true;
                     }
-                    System.out.printf(formatString, values.toArray(new String[0]));
+                 
                     break; // Break out of the loop once the employee is found
                 }
             }

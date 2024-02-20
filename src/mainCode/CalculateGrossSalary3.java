@@ -36,26 +36,19 @@ public class CalculateGrossSalary3 {
             double hourlyRate = hourlyRates.getOrDefault(employeeId, 0.0);
             double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
 
-            // Format hoursWorked to display only 2 decimals
-            String formattedHoursWorked = String.format("%.2f", hoursWorked);
-
             // Calculate prorated salary (total hrs worked x hourly pay)
             double proratedSalary = hourlyRate * hoursWorked;
-
-            // Format the output to display with commas and 2 decimals for prorated salary
+            String formattedHoursWorked = String.format("%.2f", hoursWorked);
             String formattedProratedSalary = String.format("%,.2f", proratedSalary);
 
-            // Calculate total monthly allowances
+            // Calculate and format total monthly allowances
             double totalMonthlyAllowance = RICE_SUBSIDY + PHONE_ALLOWANCE + CLOTHING_ALLOWANCE;
+            String formattedTotalMonthlyAllowance = String.format("%,.2f", totalMonthlyAllowance);
 
-            // Format the output to display with commas and 2 decimals for monthly allowances
-            String formattedTotalMonthlyAllowance = String.format("%,8.2f", totalMonthlyAllowance);
-
-            // Calculate gross salary (prorated salary + monthly allowances)
+            // Calculate and format gross salary (prorated salary + monthly allowances)
             double grossSalary = proratedSalary + totalMonthlyAllowance;
+            String formattedGrossSalary = String.format("%,.2f", grossSalary);
 
-            // Format the output to display with commas and 2 decimals for gross salary
-            String formattedGrossSalary = String.format("%,8.2f", grossSalary);
 
             // Display the result with the total gross salary including allowances
             System.out.println("Employee ID: " + employeeId + "; Hours Worked: " + formattedHoursWorked +
