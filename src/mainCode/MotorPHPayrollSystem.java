@@ -10,56 +10,6 @@ import java.util.*;
 
 public class MotorPHPayrollSystem {
 
-	// 2 Dimensional Array for SSS Contribution
-    private static final double[][] SSS_CONTRIBUTION_TABLE = {
-    	    {0.00, 3250.00, 135.00}, // Below 3,250
-    	    {3250.00, 3750.00, 157.50},
-    	    {3750.00, 4250.00, 180.00},
-    	    {4250.00, 4750.00, 202.50},
-    	    {4750.00, 5250.00, 225.00},
-    	    {5250.00, 5750.00, 247.50},
-    	    {5750.00, 6250.00, 270.00},
-    	    {6250.00, 6750.00, 292.50},
-    	    {6750.00, 7250.00, 315.00},
-    	    {7250.00, 7750.00, 337.50},
-    	    {7750.00, 8250.00, 360.00},
-    	    {8250.00, 8750.00, 382.50},
-    	    {8750.00, 9250.00, 405.00},
-    	    {9250.00, 9750.00, 427.50},
-    	    {9750.00, 10250.00, 450.00},
-    	    {10250.00, 10750.00, 472.50},
-    	    {10750.00, 11250.00, 495.00},
-    	    {11250.00, 11750.00, 517.50},
-    	    {11750.00, 12250.00, 540.00},
-    	    {12250.00, 12750.00, 562.50},
-    	    {12750.00, 13250.00, 585.00},
-    	    {13250.00, 13750.00, 607.50},
-    	    {13750.00, 14250.00, 630.00},
-    	    {14250.00, 14750.00, 652.50},
-    	    {14750.00, 15250.00, 675.00},
-    	    {15250.00, 15750.00, 697.50},
-    	    {15750.00, 16250.00, 720.00},
-    	    {16250.00, 16750.00, 742.50},
-    	    {16750.00, 17250.00, 765.00},
-    	    {17250.00, 17750.00, 787.50},
-    	    {17750.00, 18250.00, 810.00},
-    	    {18250.00, 18750.00, 832.50},
-    	    {18750.00, 19250.00, 855.00},
-    	    {19250.00, 19750.00, 877.50},
-    	    {19750.00, 20250.00, 900.00},
-    	    {20250.00, 20750.00, 922.50},
-    	    {20750.00, 21250.00, 945.00},
-    	    {21250.00, 21750.00, 967.50},
-    	    {21750.00, 22250.00, 990.00},
-    	    {22250.00, 22750.00, 1012.50},
-    	    {22750.00, 23250.00, 1035.00},
-    	    {23250.00, 23750.00, 1057.50},
-    	    {23750.00, 24250.00, 1080.00},
-    	    {24250.00, 24750.00, 1102.50},
-    	    // The last bracket covers everything above 24750.00
-    	    {24750.00, Double.POSITIVE_INFINITY, 1125.00}
-    	    };
-
 
         // Philhealth constants
         private static final double PHILHEALTH_LOWER_SALARY_CAP = 10000.00;
@@ -706,14 +656,14 @@ public class MotorPHPayrollSystem {
     }
 
 
-    private static double calculateSssDeduction(double grossSalary) {
-        for (double[] bracket : SSS_CONTRIBUTION_TABLE) {
-            if (grossSalary >= bracket[0] && grossSalary < bracket[1]) {
-                return bracket[2];
-            }
-        }
-        // Default contribution if salary is beyond the table
-        return SSS_CONTRIBUTION_TABLE[SSS_CONTRIBUTION_TABLE.length - 1][2];
+    public static double calculateSssDeduction(double grossSalary) {
+        // Round the gross salary to the nearest multiple of 500
+        double roundedSalary = Math.round(grossSalary / 500.0) * 500;
+        
+        // Calculate 4.5% of the rounded salary
+        double sssContribution = Math.min(Math.max(roundedSalary * 0.045, 135), 1125);
+        
+        return sssContribution;
     }
 
 	private static void displayNetSalaryPerWeek(String employeeId, String yearMonth, double netSalary) {
@@ -780,9 +730,10 @@ public class MotorPHPayrollSystem {
                     double netSalary = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction + taxDeduction);
 
                     // Print the payslip with the calculated values
-                    System.out.println("MOTOR PH PAYSLIP");
-                    System.out.println("--------------------------");
-                    System.out.println("Period: " + yearMonth);
+                    System.out.println("");
+                    System.out.println("\t\tMOTOR PH PAYSLIP");
+                    System.out.println("----------------------------------------------------------");
+                    System.out.println("\t\t\t\t\tPeriod: " + yearMonth);
                     System.out.println("\nName: " + lastName + ", " + firstName + "\t\tEmployee ID: " + employeeId);
                     System.out.println("Position: " + position);
                     System.out.println("\nGross Salary: " + String.format("%,.2f", grossSalary));
@@ -792,6 +743,7 @@ public class MotorPHPayrollSystem {
                     System.out.println("\tPagibig: " + String.format("%,.2f", pagibigDeduction));
                     System.out.println("\tWithholding Tax: " + String.format("%,.2f", taxDeduction));
                     System.out.println("\nTotal NET SALARY: " + String.format("%,.2f", netSalary));
+                    System.out.println("");
                     break;
                 }
             }
