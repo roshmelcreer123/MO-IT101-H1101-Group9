@@ -92,69 +92,119 @@ public class MainCode {
         String employeeDataPath = "src/resources/motorPhEmployeeData.csv";
         String attendanceRecordPath = "src/resources/motorPhAttendanceRecord.csv";
 
-        while (true) { // Infinite loop to keep the program running
-            // Display options to the user
-            System.out.println("Choose an option:");
-            System.out.println("1. View Entire Employee Data Table");
-            System.out.println("2. Search for an Employee in Employee Data");
-            System.out.println("3. View Entire Attendance Record for Specific Year and Month");
-            System.out.println("4. View Entire Attendance Record (All Records)");
-            System.out.println("5. View Specific Employee Attendance Record");
-            System.out.println("6. Calculate Gross Salaries");
-            System.out.println("7. View Net Salary of Specific Employee");
-            System.out.println("8. View All Net Salary Records for a Specific Month");
-            System.out.println("9. View Gross Salaries for a Specific Month");
-            System.out.println("10. Exit");
+        while (true) {
+            // Display options to the user based on the document
+            System.out.println("Choose an Option:");
+            System.out.println("1. Employee Details");
+            System.out.println("2. Attendance Records");
+            System.out.println("3. Salary Calculations");
+            System.out.println("4. Payslip Records");
+            System.out.println("5. Exit");
             System.out.print("Enter your choice: ");
 
-            int choice = scanner.nextInt(); // Read user's choice
-            scanner.nextLine(); // Consume the remaining newline
+            String choice = scanner.nextLine().trim();
 
-            // Switch case to handle different user choices
-            switch (choice) {
-                case 1:
-                    viewEntireEmployeeTable(employeeDataPath); // View entire employee data table
-                    break;
-                case 2:
-                    System.out.print("Enter employee ID Number: ");
+
+            if (choice.equals("1") || choice.equalsIgnoreCase("Employee Details") || choice.equalsIgnoreCase("ED")) {
+            	
+            	// Sub choices that are specific to the Employee Details
+            	// This is where the users can choose between viewing the entire table or viewing one specific employee
+            	System.out.println("1. View Specific Employee Details");
+                System.out.println("2. View Entire Employee Data Table");
+                System.out.print("Select an option: ");
+                String subChoice = scanner.nextLine().trim();
+                
+                
+                // This is the nested if else to call out the different methods to display the employee table or the specific employee
+                if (subChoice.equals("1") || subChoice.equals("View Specific Employee Details") || subChoice.equals("VSED")) {
+                	System.out.print("Enter employee ID Number: ");
                     String desiredEmployeeId = scanner.nextLine();
                     searchForEmployee(employeeDataPath, desiredEmployeeId); // Search for an employee
-                    break;
-                case 3:
-                    viewEntireTableForMonth(attendanceRecordPath, scanner); // View attendance record for a specific year and month
-                    break;
-                case 4:
-                    viewEntireAttendanceTable(attendanceRecordPath); // View all attendance records
-                    break;
-                case 5:
-                    viewSpecificEmployee(attendanceRecordPath, scanner); // View attendance record for a specific employee
-                    break;
-                case 6:
-                    System.out.print("Enter year and month (YYYY/MM) to calculate gross salaries: ");
+                } else if (subChoice.equals("2") || subChoice.equals("View Entire Employee Data Table") || subChoice.equals("VEEDT")) {
+                	 viewEntireEmployeeTable(employeeDataPath); // View entire employee data table
+                } else {
+                	// Error message when the user inputted an invalid choice
+                    System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSED)"); // If user does not input the correct choice
+                }
+                
+            } else if (choice.equals("2") || choice.equalsIgnoreCase("Attendance Records") || choice.equalsIgnoreCase("AR")) {
+                
+            	// Attendance Records options
+            	// This is where the users can choose between viewing the entire table or viewing one specific employee
+            	System.out.println("1. View Specific Employee Attendance Record");
+                System.out.println("2. View Entire Attendance Record for Specific Year and Month");
+                System.out.println("3. View Entire Attendance Record(All Records)");
+                System.out.print("Select an option: ");
+                String subChoice = scanner.nextLine().trim();
+                
+                // This is the nested if else to call out the different methods to display the attendance options
+                if (subChoice.equals("1") || subChoice.equalsIgnoreCase("View Specific Employee Attendance Record") || subChoice.equalsIgnoreCase("VSEAR")) {
+                	viewSpecificEmployee(attendanceRecordPath, scanner);
+                } else if (subChoice.equals("2") || subChoice.equalsIgnoreCase("View Entire Attendance Record for Specific Year and Month") || subChoice.equalsIgnoreCase("VEARSYM")) {
+                	viewEntireTableForMonth(attendanceRecordPath, scanner); // View attendance record for a specific year and month
+                } else if (subChoice.equals("3") || subChoice.equalsIgnoreCase("View Entire Attendance Record(All Records") || subChoice.equalsIgnoreCase("VEAR")) {
+                	 viewEntireAttendanceTable(attendanceRecordPath); // View all attendance records
+               }
+                else {
+                	// Error message when the user inputted an invalid choice
+                    System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSEAR)"); // If user does not input the correct choice
+                }
+            	
+            	
+            } else if (choice.equals("3") || choice.equalsIgnoreCase("Salary Calculations") || choice.equalsIgnoreCase("SC")) {
+                // Salary Calculations options
+            	// This is where the users can choose between viewing the entire table or viewing one specific employee
+            	System.out.println("1. View Gross Salary of Specific Employee");
+                System.out.println("2. View Gross Salaries for a Specific Year and Month");
+                System.out.println("3. View Net Salary of Specific Employee");
+                System.out.println("4. View All Net Salary Records for a Specific Year and Month");
+                System.out.print("Select an option: ");
+                String subChoice = scanner.nextLine().trim();
+                
+                // This is the nested if else to call out the different methods to display the attendance options
+                if (subChoice.equals("1") || subChoice.equalsIgnoreCase("View Gross Salary of Specific Employee") || subChoice.equalsIgnoreCase("VGSSE")) {
+                
+                	viewGrossSalaryOfSpecificEmployee(scanner);
+                	
+                } else if (subChoice.equals("2") || subChoice.equalsIgnoreCase("View Gross Salaries for a Specific Year and Month") || subChoice.equalsIgnoreCase("VGSYM")) {
+                	
+                	System.out.print("Enter year and month (YYYY/MM) to calculate gross salaries: ");
                     String yearMonth = scanner.next();
                     Map<String, Double> hourlyRates = readEmployeeData(employeeDataPath);
                     Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth(attendanceRecordPath, yearMonth);
                     calculateAndDisplayGrossSalaries(hourlyRates, totalHoursWorked); // Calculate and display gross salaries
-                    break;
-                case 7:
-                    viewNetSalaryOfSpecificEmployee(scanner);
-                    break;
-                case 8:
-                    viewAllNetSalariesForSpecificMonth(scanner);
-                    break;
-                case 9:
-                    System.out.print("Enter year and month (YYYY/MM) to calculate gross salaries: ");
-                    String yearMonth1 = scanner.nextLine();
-                    displayGrossSalariesForMonth(yearMonth1);
-                    break;    
-                case 10:
-                    System.out.println("Exiting the program.");
-                    scanner.close(); // Close the scanner
-                    return; // Exit the program
-                default:
-                    System.out.println("Invalid choice!"); // Handle invalid choices
+                    
+                } else if (subChoice.equals("3") || subChoice.equalsIgnoreCase("View Net Salary of Specific Employee") || subChoice.equalsIgnoreCase("VNSSE")) {
+                	
+                	viewNetSalaryOfSpecificEmployee(scanner);
+                	
+                } else if (subChoice.equals("4") || subChoice.equalsIgnoreCase("View All Net Salary Records for a Specific Year and Month") || subChoice.equalsIgnoreCase("VANSRSYM")) {
+                	
+                	viewAllNetSalariesForSpecificMonth(scanner);
+               	 
+                }
+                else {
+                	// Error message when the user inputted an invalid choice
+                    System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VNSSE)"); // If user does not input the correct choice
+                }
+            	
+            } else if (choice.equals("4") || choice.equalsIgnoreCase("Payslip Records") || choice.equalsIgnoreCase("PR")) {
+            	
+                // Payslip Records options
+            	System.out.println("Still waiting for new stuff from Abegail \n");
+            	
+            } else if (choice.equals("5") || choice.equalsIgnoreCase("Exit") || choice.equalsIgnoreCase("E")) {
+            	
+            	// Exit the program
+                System.out.println("Exiting the program.");
+                scanner.close();
+                break;
+                
+            } else {
+                System.out.println("Invalid choice! Enter the number/name of the menu that you want to access"); 
             }
         }
+
     }
     
     public static void viewEntireEmployeeTable(String path) {
@@ -415,11 +465,19 @@ public class MainCode {
         // Format string for displaying employee data
         String formatString = "| %-10s | %-15s | %-15s | %-9s | %-76s | %-15s | %-15s | %-15s | %-15s | %-15s | %-15s | %-30s | %-30s | %-12s | %-12s | %-15s | %-20s | %-23s | %-11s |%n";
         try {
+        	
             BufferedReader br = new BufferedReader(new FileReader(path));
             String line;
             boolean employeeFound = false; // Flag to check if employee is found
+            
             // Header format for the table
-            String header = String.format(formatString, "Employee #", "Last Name", "First Name", "Birthday", "Address", "Phone Number", "SSS #", "Philhealth #", "TIN #", "Pag-ibig #", "Status", "Position", "Immediate Supervisor", "Basic Salary", "Rice Subsidy", "Phone Allowance", "Clothing Allowance", "Gross Semi-monthly Rate", "Hourly Rate");
+            String header = String.format(formatString, "Employee #", "Last Name", "First Name", 
+            											"Birthday", "Address", "Phone Number", "SSS #", 
+            											"Philhealth #", "TIN #", "Pag-ibig #", "Status", 
+            											"Position", "Immediate Supervisor", "Basic Salary", 
+            											"Rice Subsidy", "Phone Allowance", "Clothing Allowance", 
+            											"Gross Semi-monthly Rate", "Hourly Rate");
+            
             while ((line = br.readLine()) != null) {
                 List<String> values = parseCsvLine(line);
                 // Check if the current line is the desired employee
@@ -428,7 +486,8 @@ public class MainCode {
                         System.out.print(header);
                         employeeFound = true;
                     }
-                    System.out.printf(formatString, values.toArray(new String[0]));
+                    
+                    System.out.printf(formatString, values.toArray(new String[0])); // Print employee details
                     break; // Break the loop as employee is found
                 }
             }
@@ -599,6 +658,45 @@ public class MainCode {
         }
     }
     
+	// Displaying the Gross Salary of a Specific Employee
+	private static void viewGrossSalaryOfSpecificEmployee(Scanner scanner) {
+	    System.out.print("Enter Employee ID: ");
+	    String employeeId = scanner.nextLine();
+	    System.out.print("Enter Year and Month (YYYY/MM): ");
+	    String yearMonth = scanner.nextLine();
+
+	    // Read hourly rates and total hours worked for the given month
+	    Map<String, Double> hourlyRates = readEmployeeData("src/resources/motorPhEmployeeData.csv");
+	    Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
+
+	    // Calculate the gross salary for the employee
+	    if (hourlyRates.containsKey(employeeId) && totalHoursWorked.containsKey(employeeId)) {
+	        double hourlyRate = hourlyRates.get(employeeId);
+	        double hoursWorked = totalHoursWorked.get(employeeId);
+
+	        // Calculate prorated salary (total hrs worked x hourly pay)
+	        double proratedSalary = hourlyRate * hoursWorked;
+	        String formattedHoursWorked = String.format("%.2f", hoursWorked);
+	        String formattedProratedSalary = String.format("%,.2f", proratedSalary);
+
+	        // Calculate and format total monthly allowances
+	        double totalMonthlyAllowance = RICE_SUBSIDY + PHONE_ALLOWANCE + CLOTHING_ALLOWANCE;
+	        String formattedTotalMonthlyAllowance = String.format("%,.2f", totalMonthlyAllowance);
+
+	        // Calculate gross salary (prorated salary + monthly allowances)
+	        double grossSalary = proratedSalary + totalMonthlyAllowance;
+	        String formattedGrossSalary = String.format("%,.2f", grossSalary);
+
+	        // Display the result with the total gross salary including allowances
+	        System.out.println("Employee ID: " + employeeId + "; Hours Worked: " + formattedHoursWorked +
+	                "; Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " +
+	                formattedTotalMonthlyAllowance + "; Gross Salary: " + formattedGrossSalary);
+	    } else {
+	        System.out.println("Employee data not found for the given ID or month.");
+	    }
+	}
+
+
     
     private static void viewAllNetSalariesForSpecificMonth(Scanner scanner) {
         System.out.print("Enter Year and Month (YYYY/MM) to view all net salaries: ");
