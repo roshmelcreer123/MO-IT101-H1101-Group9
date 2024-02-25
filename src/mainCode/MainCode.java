@@ -79,10 +79,10 @@ public class MainCode {
         private static final double[] TAX_RATES = {0.2, 0.25, 0.3, 0.32, 0.35};
 	
 	
-	// Global Values - Allowances
-	private static final double RICE_SUBSIDY = 1500.0;
-    private static final double PHONE_ALLOWANCE = 2000.0;
-    private static final double CLOTHING_ALLOWANCE = 1000.0;
+        // Global Values - Allowances
+        private static final double RICE_SUBSIDY = 1500.0;
+        private static final double PHONE_ALLOWANCE = 2000.0;
+        private static final double CLOTHING_ALLOWANCE = 1000.0;
 
     // Main method - Entry point of the program
     public static void main(String[] args) {
@@ -91,6 +91,12 @@ public class MainCode {
         // Define file paths for employee data and attendance records
         String employeeDataPath = "src/resources/motorPhEmployeeData.csv";
         String attendanceRecordPath = "src/resources/motorPhAttendanceRecord.csv";
+        
+        // Display welcome message
+        System.out.println("WELCOME TO MOTOR PH PAYROLL SYSTEM");
+        System.out.println("—--------------------------------------------------------------");
+        System.out.println("Good day, ADMIN!");
+        System.out.println("—-----------------------");
 
         while (true) {
             // Display options to the user based on the document
@@ -103,8 +109,8 @@ public class MainCode {
             System.out.print("Enter your choice: ");
 
             String choice = scanner.nextLine().trim();
-
-
+            
+            // Employee Details
             if (choice.equals("1") || choice.equalsIgnoreCase("Employee Details") || choice.equalsIgnoreCase("ED")) {
             	
             	// Sub choices that are specific to the Employee Details
@@ -127,6 +133,7 @@ public class MainCode {
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSED)"); // If user does not input the correct choice
                 }
                 
+          // Attendance Records 
             } else if (choice.equals("2") || choice.equalsIgnoreCase("Attendance Records") || choice.equalsIgnoreCase("AR")) {
                 
             	// Attendance Records options
@@ -150,7 +157,8 @@ public class MainCode {
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSEAR)"); // If user does not input the correct choice
                 }
             	
-            	
+                
+            // Salary Calculations	
             } else if (choice.equals("3") || choice.equalsIgnoreCase("Salary Calculations") || choice.equalsIgnoreCase("SC")) {
                 // Salary Calculations options
             	// This is where the users can choose between viewing the entire table or viewing one specific employee
@@ -188,18 +196,36 @@ public class MainCode {
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VNSSE)"); // If user does not input the correct choice
                 }
             	
+            
+            // Payslip Records
             } else if (choice.equals("4") || choice.equalsIgnoreCase("Payslip Records") || choice.equalsIgnoreCase("PR")) {
             	
-                // Payslip Records options
-            	System.out.println("Still waiting for new stuff from Abegail \n");
+            	// Payslip Records options
+            	// This is where the users can choose between viewing the entire table or viewing one specific employee
+            	System.out.println("1. View Payslip of Specific Employee");
+                System.out.print("Select an option: ");
+                String subChoice = scanner.nextLine().trim();
             	
+            	
+            	// This is the nested if else to call out the different methods to display the employee table or the specific employee
+                if (subChoice.equals("1") || subChoice.equals("View Payslip of Specific Employee") || subChoice.equals("VPSE")) {
+                	 viewPayslipOfSpecificEmployee(scanner, employeeDataPath);
+                } else {
+                	// Error message when the user inputted an invalid choice
+                    System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSED)"); // If user does not input the correct choice
+                }
+            
+                
+            // Closing the program
             } else if (choice.equals("5") || choice.equalsIgnoreCase("Exit") || choice.equalsIgnoreCase("E")) {
             	
             	// Exit the program
                 System.out.println("Exiting the program.");
                 scanner.close();
                 break;
+            
                 
+            // If user inputted wrong commands
             } else {
                 System.out.println("Invalid choice! Enter the number/name of the menu that you want to access"); 
             }
@@ -812,6 +838,67 @@ public class MainCode {
         double weeklyNetSalary = netSalary / 4;
         for (int week = 1; week <= 4; week++) {
             System.out.println("Week " + week + ": " + weeklyNetSalary);
+        }
+    }
+	
+	// Method to display Payslip of Specific Employee
+	private static void viewPayslipOfSpecificEmployee(Scanner scanner, String employeeDataPath) {
+        System.out.print("Enter Employee ID: ");
+        String employeeId = scanner.nextLine();
+        System.out.print("Enter Year and Month (YYYY/MM): ");
+        String yearMonth = scanner.nextLine();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(employeeDataPath));
+            String line;
+            boolean employeeFound = false;
+            
+            while ((line = br.readLine()) != null) {
+                List<String> values = parseCsvLine(line);
+                if (!values.isEmpty() && values.get(0).equals(employeeId)) {
+                    employeeFound = true;
+                    
+                    String firstName = values.get(2); // Assuming First Name is at index 2
+                    String lastName = values.get(1); // Assuming Last Name is at index 1
+                    String position = values.get(11); // Assuming Position is at index 11
+
+                    // Calculate the gross salary for the employee
+                    double grossSalary = calculateGrossSalaryForEmployee(employeeId, yearMonth);
+
+                    // Calculate each type of deduction
+                    double sssDeduction = calculateSssDeduction(grossSalary);
+                    double philhealthDeduction = calculatePhilhealthDeduction(grossSalary);
+                    double pagibigDeduction = calculatePagibigDeduction(grossSalary);
+                    double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
+                    double taxDeduction = calculateTaxDeduction(taxableIncome);
+
+                    // Calculate the net salary
+                    double netSalary = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction + taxDeduction);
+
+                    // Print the payslip with the calculated values
+                    System.out.println("");
+                    System.out.println("\t\tMOTOR PH PAYSLIP");
+                    System.out.println("----------------------------------------------------------");
+                    System.out.println("\t\t\t\t\tPeriod: " + yearMonth);
+                    System.out.println("\nName: " + lastName + ", " + firstName + "\t\tEmployee ID: " + employeeId);
+                    System.out.println("Position: " + position);
+                    System.out.println("\nGross Salary: " + String.format("%,.2f", grossSalary));
+                    System.out.println("\nDeductions:");
+                    System.out.println("\tSSS: " + String.format("%,.2f", sssDeduction));
+                    System.out.println("\tPhilhealth: " + String.format("%,.2f", philhealthDeduction));
+                    System.out.println("\tPagibig: " + String.format("%,.2f", pagibigDeduction));
+                    System.out.println("\tWithholding Tax: " + String.format("%,.2f", taxDeduction));
+                    System.out.println("\nTotal NET SALARY: " + String.format("%,.2f", netSalary));
+                    System.out.println("");
+                    break;
+                }
+            }
+            if (!employeeFound) {
+                System.out.println("Employee not found.");
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
     
