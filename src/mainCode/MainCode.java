@@ -688,9 +688,10 @@ public class MainCode {
 	        String formattedGrossSalary = String.format("%,.2f", grossSalary);
 
 	        // Display the result with the total gross salary including allowances
-	        System.out.println("Employee ID: " + employeeId + "; Hours Worked: " + formattedHoursWorked +
-	                "; Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " +
-	                formattedTotalMonthlyAllowance + "; Gross Salary: " + formattedGrossSalary);
+	        System.out.println("\n Employee ID: " + employeeId + "| Gross Salary: for " + yearMonth + ": " + formattedGrossSalary +
+	        				   "\n Hours Worked: " + formattedHoursWorked +
+	        				   "\n Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " + formattedTotalMonthlyAllowance +  
+	        				   "\n");
 	    } else {
 	        System.out.println("Employee data not found for the given ID or month.");
 	    }
