@@ -76,11 +76,14 @@ public class MainCode {
                 	System.out.print("Enter employee ID Number: ");
                     String desiredEmployeeId = scanner.nextLine();
                     searchForEmployee(employeeDataPath, desiredEmployeeId); // Search for an employee
+                    
                 } else if (subChoice.equals("2") || subChoice.equals("View Entire Employee Data Table") || subChoice.equals("VEEDT")) {
                 	 viewEntireEmployeeTable(employeeDataPath); // View entire employee data table
+                	 
                 } else {
                 	// Error message when the user inputted an invalid choice
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSED)"); // If user does not input the correct choice
+                    
                 }
                 
           // Attendance Records 
@@ -179,6 +182,7 @@ public class MainCode {
             } else {
                 System.out.println("Invalid choice! Enter the number/name of the menu that you want to access"); 
             }
+            
         }
 
     }
@@ -865,14 +869,23 @@ public class MainCode {
         return recordYearMonth.equals(yearMonth); // Compare with specified yearMonth
     }
 
-    // Method to calculate the number of hours worked between two time strings
+ // Method to calculate the number of hours worked between two time strings
     private static double calculateHoursWorked(String timeIn, String timeOut) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm"); // Time format for parsing
         Date dateIn = sdf.parse(timeIn); // Parse time-in string
         Date dateOut = sdf.parse(timeOut); // Parse time-out string
         long difference = dateOut.getTime() - dateIn.getTime(); // Calculate difference in milliseconds
-        return (double) difference / (1000 * 60 * 60); // Convert milliseconds to hours and return
+        
+        // Initially calculate the total hours worked without considering the lunch break
+        double hoursWorked = (double) difference / (1000 * 60 * 60); // Convert milliseconds to hours
+        
+        // Subtract 1 hour for lunch break if the total working hours are more than or equal to 8 hours
+        if(hoursWorked >= 8) {
+            hoursWorked -= 1;
+        }
+        return hoursWorked; // Return the adjusted hoursWorked
     }
+
 }
 
 
