@@ -75,7 +75,8 @@ public class MainCode {
                 if (subChoice.equals("1") || subChoice.equals("View Specific Employee Details") || subChoice.equals("VSED")) {
                 	System.out.print("Enter employee ID Number: ");
                     String desiredEmployeeId = scanner.nextLine();
-                    searchForEmployee(employeeDataPath, desiredEmployeeId); // Search for an employee
+                    EmployeeDetails employeeDetails = searchForEmployee(employeeDataPath, desiredEmployeeId); // Search for an employee
+                    printEmployeeDetails(employeeDetails); // Print the details of the found employee
                     
                 } else if (subChoice.equals("2") || subChoice.equals("View Entire Employee Data Table") || subChoice.equals("VEEDT")) {
                 	 viewEntireEmployeeTable(employeeDataPath); // View entire employee data table
@@ -102,7 +103,7 @@ public class MainCode {
                 	viewSpecificEmployee(attendanceRecordPath, scanner);
                 } else if (subChoice.equals("2") || subChoice.equalsIgnoreCase("View Entire Attendance Record for Specific Year and Month") || subChoice.equalsIgnoreCase("VEARSYM")) {
                 	viewEntireTableForMonth(attendanceRecordPath, scanner); // View attendance record for a specific year and month
-                } else if (subChoice.equals("3") || subChoice.equalsIgnoreCase("View Entire Attendance Record(All Records") || subChoice.equalsIgnoreCase("VEAR")) {
+                } else if (subChoice.equals("3") || subChoice.equalsIgnoreCase("View Entire Attendance Record(All Records)") || subChoice.equalsIgnoreCase("VEAR")) {
                 	 viewEntireAttendanceTable(attendanceRecordPath); // View all attendance records
                }
                 else {
@@ -214,7 +215,7 @@ public class MainCode {
         }
     }
     
-    private static void viewEntireAttendanceTable(String path) {
+    public static void viewEntireAttendanceTable(String path) {
     	String formatString = "| %-10s | %-20s | %-20s | %-20s | %-20s | %-20s |%n";
     	
     	try {
@@ -268,9 +269,9 @@ public class MainCode {
         }
     }
     
-    private static void viewEntireTableForMonth(String path, Scanner scanner) {
+    public static void viewEntireTableForMonth(String path, Scanner scanner) {
         System.out.print("Enter year and month (YYYY/MM): ");
-        String yearMonth = scanner.next();
+        String yearMonth = scanner.nextLine();
         String formatString = "| %-10s | %-20s | %-20s | %-20s | %-20s | %-20s |%n";
 
         try {
@@ -292,6 +293,7 @@ public class MainCode {
 
             // Map to store total hours worked per day
             Map<String, Double> dailyHoursMap = new HashMap<>();
+            Map<String, Double> dailyLateHoursMap = new HashMap<>(); // For storing total late hours per day
 
             // Loop through each line in the file until the end is reached
             String line;
@@ -312,6 +314,8 @@ public class MainCode {
                 if (recordYear == year && recordMonth == (month - 1)) {
                     // Calculate and print hours worked
                     double hoursWorked = calculateHoursWorked(csvValues[4], csvValues[5]);
+                    double lateHours = calculateLateWorkHours(csvValues[4]); // Calculate late hours for this record
+
                     
                     // Print each line with formatted output
                     System.out.printf(formatString, csvValues[0], csvValues[1], csvValues[2], sdf.format(recordDate), csvValues[4], csvValues[5], String.format("%.2f", hoursWorked));
@@ -320,6 +324,7 @@ public class MainCode {
                     // Update daily hours map
                     String day = sdf.format(recordDate);
                     dailyHoursMap.put(day, dailyHoursMap.getOrDefault(day, 0.0) + hoursWorked);
+                    dailyLateHoursMap.put(day, dailyLateHoursMap.getOrDefault(day, 0.0) + lateHours); // Accumulate late hours
                 }
             }
 
@@ -328,6 +333,13 @@ public class MainCode {
             for (Map.Entry<String, Double> entry : dailyHoursMap.entrySet()) {
                 System.out.println(entry.getKey() + ": " + entry.getValue() + " hours");
             }
+            
+            // Print total hours late per day
+            System.out.println("\nTotal Late Hours per Day:");
+            for (Map.Entry<String, Double> entry : dailyLateHoursMap.entrySet()) {
+                System.out.println(entry.getKey() + ": " + String.format("%.2f", entry.getValue()) + " hours late");
+            }
+
 
             // Close the BufferedReader to release system resources
             br.close();
@@ -337,11 +349,11 @@ public class MainCode {
         }
     }
     
-    private static void viewSpecificEmployee(String path, Scanner scanner) {
+    public static void viewSpecificEmployee(String path, Scanner scanner) {
         System.out.print("Enter employee ID: ");
-        String employeeId = scanner.next();
+        String employeeId = scanner.nextLine();
         System.out.print("Enter year and month (YYYY/MM): ");
-        String yearMonth = scanner.next();
+        String yearMonth = scanner.nextLine();
         
         String formatString = "| %-10s | %-20s | %-20s | %-20s | %-20s | %-20s |%n";
 
@@ -349,6 +361,7 @@ public class MainCode {
             String[] yearMonthParts = yearMonth.split("/");
             int year = Integer.parseInt(yearMonthParts[0]);
             int month = Integer.parseInt(yearMonthParts[1]);
+            double totalLateHours = 0; // Variable to store total late hours
 
             // Create a BufferedReader to read the file
             BufferedReader br = new BufferedReader(new FileReader(path));
@@ -381,6 +394,7 @@ public class MainCode {
                 recordCalendar.setTime(recordDate);
                 int recordYear = recordCalendar.get(Calendar.YEAR);
                 int recordMonth = recordCalendar.get(Calendar.MONTH);
+             
 
                 // Check if the record belongs to the specified employee and month
                 if (recordEmployeeId.equals(employeeId) && recordYear == year && recordMonth == (month - 1)) {
@@ -390,6 +404,12 @@ public class MainCode {
                     
                     // Update total hours for the month
                     totalHoursThisMonth += hoursWorked;
+                    
+                    // Calculate lateness for each record
+                    double lateHours = calculateLateWorkHours(csvValues[4]);
+                    if (lateHours > 0) {
+                        totalLateHours += lateHours;
+                    }
 
                     // Store hours worked by the employee on each date
                     String dateString = new SimpleDateFormat("MM/dd/yyyy").format(recordDate);
@@ -399,6 +419,7 @@ public class MainCode {
 
             // Print total hours worked this month by the employee
             System.out.println("\nTotal Hours Worked this Month by Employee " + employeeId + ": " + totalHoursThisMonth + " hours");
+            System.out.println("Total Late Hours this Month by Employee " + employeeId + ": " + String.format("%.2f", totalLateHours) + " hours");
 
             // Print hours worked by the employee on each date
             System.out.println("\nHours Worked by Employee " + employeeId + " on Each Date:");
@@ -414,7 +435,7 @@ public class MainCode {
         }
     }
     
-    private static void calculateAndDisplayGrossSalaries(Map<String, Double> hourlyRates, Map<String, Double> totalHoursWorked) {
+    public static void calculateAndDisplayGrossSalaries(Map<String, Double> hourlyRates, Map<String, Double> totalHoursWorked) {
     	for (String employeeId : hourlyRates.keySet()) {
             double hourlyRate = hourlyRates.getOrDefault(employeeId, 0.0);
             double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
@@ -441,47 +462,85 @@ public class MainCode {
     }
 
     // Method to search for an employee in employee data
-    private static void searchForEmployee(String path, String desiredEmployeeId) {
-        // Format string for displaying employee data
-        String formatString = "| %-10s | %-15s | %-15s | %-9s | %-76s | %-15s | %-15s | %-15s | %-15s | %-15s | %-15s | %-30s | %-30s | %-12s | %-12s | %-15s | %-20s | %-23s | %-11s |%n";
-        try {
-        	
-            BufferedReader br = new BufferedReader(new FileReader(path));
+    // Refactored method to return an EmployeeDetails object
+    public static EmployeeDetails searchForEmployee(String path, String desiredEmployeeId) {
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String line;
-            boolean employeeFound = false; // Flag to check if employee is found
-            
-            // Header format for the table
-            String header = String.format(formatString, "Employee #", "Last Name", "First Name", 
-            											"Birthday", "Address", "Phone Number", "SSS #", 
-            											"Philhealth #", "TIN #", "Pag-ibig #", "Status", 
-            											"Position", "Immediate Supervisor", "Basic Salary", 
-            											"Rice Subsidy", "Phone Allowance", "Clothing Allowance", 
-            											"Gross Semi-monthly Rate", "Hourly Rate");
-            
             while ((line = br.readLine()) != null) {
                 List<String> values = parseCsvLine(line);
-                // Check if the current line is the desired employee
                 if (!values.isEmpty() && values.get(0).equals(desiredEmployeeId)) {
-                    if (!employeeFound) {
-                        System.out.print(header);
-                        employeeFound = true;
-                    }
-                    
-                    System.out.printf(formatString, values.toArray(new String[0])); // Print employee details
-                    break; // Break the loop as employee is found
+                    // Assuming the order of values matches your EmployeeDetails constructor
+                	return new EmployeeDetails(
+                		    values.get(0), // employeeId
+                		    values.get(1), // lastName
+                		    values.get(2), // firstName
+                		    values.get(3), // birthday
+                		    values.get(4), // address
+                		    values.get(5), // phoneNumber
+                		    values.get(6), // sssNumber
+                		    values.get(7), // philhealthNumber
+                		    values.get(8), // tinNumber
+                		    values.get(9), // pagIbigNumber
+                		    values.get(10), // status
+                		    values.get(11), // position
+                		    values.get(12), // immediateSupervisor
+                		    Double.parseDouble(values.get(13).replace(",", "")), // basicSalary
+                		    Double.parseDouble(values.get(14).replace(",", "")), // riceSubsidy
+                		    Double.parseDouble(values.get(15).replace(",", "")), // phoneAllowance
+                		    Double.parseDouble(values.get(16).replace(",", "")), // clothingAllowance
+                		    Double.parseDouble(values.get(17).replace(",", "")), // grossSemiMonthlyRate
+                		    Double.parseDouble(values.get(18).replace(",", ""))  // hourlyRate
+                		);
                 }
             }
-            if (!employeeFound) {
-                System.out.println("Employee not found."); // Inform if employee is not found
-            }
-            br.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Handle exception appropriately
+            return null;
+        }
+        return null; // Return null if the employee is not found
+    }
+
+
+
+    // Call this method to print the employee details to the console
+    public static void printEmployeeDetails(EmployeeDetails details) {
+        if (details == null) {
+            System.out.println("Employee not found or an error occurred.");
+        } else {
+            // Define the format string
+            String formatString = "| %-10s | %-15s | %-15s | %-10s | %-76s | %-15s | %-15s | %-15s | %-15s | %-15s | %-15s | %-30s | %-30s | %-12s | %-12s | %-15s | %-20s | %-25s | %-10s |%n";
+
+            // Print the header using the format string
+            System.out.printf(formatString, "Employee #", "Last Name", "First Name", "Birthday", "Address", "Phone Number", "SSS #", "Philhealth #", "TIN #", "Pag-ibig #", "Status", "Position", "Immediate Supervisor", "Basic Salary", "Rice Subsidy", "Phone Allowance", "Clothing Allowance", "Gross Semi-monthly Rate", "Hourly Rate");
+
+            // Print the employee details using the format string
+            System.out.printf(formatString,
+                    details.getEmployeeId(),
+                    details.getLastName(),
+                    details.getFirstName(),
+                    details.getBirthday(),
+                    details.getAddress(),
+                    details.getPhoneNumber(),
+                    details.getSSSNumber(),
+                    details.getPhilhealthNumber(),
+                    details.getTinNumber(),
+                    details.getpagIbigNumber(),
+                    details.getStatus(),
+                    details.getPosition(),
+                    details.getImmediateSupervisor(),
+                    String.format("%.2f", details.getBasicSalary()),
+                    String.format("%.2f", details.getRiceSubsidy()),
+                    String.format("%.2f", details.getPhoneAllowance()),
+                    String.format("%.2f", details.getClothingAllowance()),
+                    String.format("%.2f", details.getGrossSemiMonthlyRate()),
+                    String.format("%.2f", details.gethourlyRate())
+            );
         }
     }
 
+
     // Method to parse a CSV line considering quoted fields
-    private static List<String> parseCsvLine(String line) {
+    public static List<String> parseCsvLine(String line) {
         List<String> values = new ArrayList<>();
         StringBuilder sb = new StringBuilder(); // StringBuilder to accumulate field values
         boolean inQuotes = false; // Flag to handle quotes in CSV
@@ -502,7 +561,7 @@ public class MainCode {
     }
     
     // Method to read employee data from CSV and extract hourly rates
-    private static Map<String, Double> readEmployeeData(String path) {
+    public static Map<String, Double> readEmployeeData(String path) {
         Map<String, Double> hourlyRates = new HashMap<>(); // Store hourly rates mapped to employee IDs
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             br.readLine(); // Skip the header line
@@ -520,7 +579,7 @@ public class MainCode {
     }
 
     // Method to calculate total hours worked for each employee for a specific month
-    private static Map<String, Double> calculateTotalHoursWorkedForMonth(String path, String yearMonth) {
+    public static Map<String, Double> calculateTotalHoursWorkedForMonth(String path, String yearMonth) {
         Map<String, Double> totalHours = new HashMap<>(); // Store total hours worked mapped to employee IDs
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             br.readLine(); // Skip the header line
@@ -542,7 +601,7 @@ public class MainCode {
     }
     
     
-    private static void displayGrossSalariesForMonth(String yearMonth) {
+    public static void displayGrossSalariesForMonth(String yearMonth) {
         // The paths should be adjusted to where your files are located in your project structure.
         String employeeDataPath = "src/resources/motorPhEmployeeData.csv";
         String attendanceRecordPath = "src/resources/motorPhAttendanceRecord.csv";
@@ -594,7 +653,7 @@ public class MainCode {
 	    return proratedSalary + totalMonthlyAllowance;
 	}
 	
-	private static void viewNetSalaryOfSpecificEmployee(Scanner scanner) {
+	public static void viewNetSalaryOfSpecificEmployee(Scanner scanner) {
         System.out.print("Enter Employee ID: ");
         String employeeId = scanner.nextLine();
         System.out.print("Enter Year and Month (YYYY/MM): ");
@@ -639,7 +698,7 @@ public class MainCode {
     }
     
 	// Displaying the Gross Salary of a Specific Employee
-	private static void viewGrossSalaryOfSpecificEmployee(Scanner scanner) {
+	public static void viewGrossSalaryOfSpecificEmployee(Scanner scanner) {
 	    System.out.print("Enter Employee ID: ");
 	    String employeeId = scanner.nextLine();
 	    System.out.print("Enter Year and Month (YYYY/MM): ");
@@ -679,7 +738,7 @@ public class MainCode {
 
 
     
-    private static void viewAllNetSalariesForSpecificMonth(Scanner scanner) {
+	public static void viewAllNetSalariesForSpecificMonth(Scanner scanner) {
         System.out.print("Enter Year and Month (YYYY/MM) to view all net salaries: ");
         String yearMonth = scanner.nextLine();
         // Assuming we have a method to get all employee IDs, we need to implement it
@@ -700,7 +759,7 @@ public class MainCode {
         }
     }
     
-    private static List<String> getAllEmployeeIds() {
+    public static List<String> getAllEmployeeIds() {
         List<String> employeeIds = new ArrayList<>();
         String path = "src/resources/motorPhEmployeeData.csv"; // Path to your employee data CSV
 
@@ -723,7 +782,7 @@ public class MainCode {
     }
 
 
-	private static double calculateTaxDeduction(double taxableIncome) {
+    public static double calculateTaxDeduction(double taxableIncome) {
         double taxDue = 0;
         
         for (int i = 0; i < TAX_BRACKETS.length; i++) {
@@ -744,7 +803,7 @@ public class MainCode {
     }
 
 
-    private static double calculatePagibigDeduction(double grossSalary) {
+	public static double calculatePagibigDeduction(double grossSalary) {
         double contributionRate = grossSalary > PAGIBIG_LOWER_SALARY_CAP ? PAGIBIG_UPPER_RATE : PAGIBIG_LOWER_RATE;
         double contribution = grossSalary * contributionRate;
 
@@ -755,7 +814,7 @@ public class MainCode {
     }
 
 
-    private static double calculatePhilhealthDeduction(double grossSalary) {
+    public static double calculatePhilhealthDeduction(double grossSalary) {
         double employeeShare;
 
         if (grossSalary <= PHILHEALTH_LOWER_SALARY_CAP) {
@@ -787,7 +846,7 @@ public class MainCode {
         return sssContribution;
     }
 
-	private static void displayNetSalaryPerWeek(String employeeId, String yearMonth, double netSalary) {
+    public static void displayNetSalaryPerWeek(String employeeId, String yearMonth, double netSalary) {
         // Assuming a fixed 4-week month for simplicity. Adjust this logic based on your actual requirements.
         double weeklyNetSalary = netSalary / 4;
         for (int week = 1; week <= 4; week++) {
@@ -796,7 +855,7 @@ public class MainCode {
     }
 	
 	// Method to display Payslip of Specific Employee
-	private static void viewPayslipOfSpecificEmployee(Scanner scanner, String employeeDataPath) {
+    public static void viewPayslipOfSpecificEmployee(Scanner scanner, String employeeDataPath) {
         System.out.print("Enter Employee ID: ");
         String employeeId = scanner.nextLine();
         System.out.print("Enter Year and Month (YYYY/MM): ");
@@ -858,7 +917,7 @@ public class MainCode {
     
 
     // Method to check if a given date string falls within a specified year and month
-    private static boolean isDateInYearMonth(String date, String yearMonth) throws ParseException {
+    public static boolean isDateInYearMonth(String date, String yearMonth) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy"); // Date format for parsing
         Date recordDate = sdf.parse(date); // Parse the date string
         Calendar calendar = Calendar.getInstance();
@@ -870,7 +929,7 @@ public class MainCode {
     }
 
  // Method to calculate the number of hours worked between two time strings
-    private static double calculateHoursWorked(String timeIn, String timeOut) throws ParseException {
+    public static double calculateHoursWorked(String timeIn, String timeOut) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm"); // Time format for parsing
         Date dateIn = sdf.parse(timeIn); // Parse time-in string
         Date dateOut = sdf.parse(timeOut); // Parse time-out string
@@ -885,6 +944,47 @@ public class MainCode {
         }
         return hoursWorked; // Return the adjusted hoursWorked
     }
+    
+    
+    
+    // Method to calculate the Total Hours that an employee has been late
+    public static double calculateLateWorkHours(String timeIn) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        Date expectedTimeIn = sdf.parse("08:00");
+        Date actualTimeIn = sdf.parse(timeIn);
+        
+        // Check if the employee is late by comparing the actual time in with the expected time in
+        if (actualTimeIn.after(expectedTimeIn)) {
+            long differenceInMilliseconds = actualTimeIn.getTime() - expectedTimeIn.getTime();
+            // Convert milliseconds to hours
+            double differenceInHours = (double) differenceInMilliseconds / (1000 * 60 * 60);
+            return differenceInHours;
+        }
+        return 0; // Return 0 if not late
+    }
+    
+    public static Map<String, Double> calculateTotalLatenessForMonth(String path, String yearMonth) {
+        Map<String, Double> totalLateness = new HashMap<>(); // Store total lateness hours mapped to employee IDs
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            br.readLine(); // Skip the header line
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] data = line.split(","); // Split CSV line into parts
+                String employeeId = data[0]; // Assume first element is employee ID
+                String date = data[3]; // Assume fourth element is date
+                String timeIn = data[4]; // Assume fifth element is time in
+
+                if (isDateInYearMonth(date, yearMonth)) { // Check if date falls within specified year and month
+                    double lateHours = calculateLateWorkHours(timeIn); // Calculate late hours for the day
+                    totalLateness.put(employeeId, totalLateness.getOrDefault(employeeId, 0.0) + lateHours); // Add late hours to total for the employee
+                }
+            }
+        } catch (IOException | ParseException e) {
+            e.printStackTrace(); // Print any exceptions
+        }
+        return totalLateness; // Return the map of total lateness hours
+    }
+
 
 }
 
