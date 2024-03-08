@@ -331,8 +331,14 @@ public class MainCode {
             // Print total hours worked per day
             System.out.println("\nTotal Hours Worked per Day:");
             for (Map.Entry<String, Double> entry : dailyHoursMap.entrySet()) {
-                System.out.println(entry.getKey() + ": " + entry.getValue() + " hours");
+                double totalHours = entry.getValue();
+                // Check if total hours worked is between 7.90 to 8
+                if (totalHours >= 7.90 && totalHours < 8.0) {
+                    totalHours = 8.0; // Set total hours to 8
+                }
+                System.out.println(entry.getKey() + ": " + totalHours + " hours");
             }
+
             
             // Print total hours late per day
             System.out.println("\nTotal Late Hours per Day:");
@@ -374,6 +380,10 @@ public class MainCode {
 
             // Map to store hours worked by the employee on each date
             TreeMap<String, Double> dailyHoursMap = new TreeMap<>();
+            
+            // Map to store late hours by the employee on each date
+            TreeMap<String, Double> dailyLateHoursMap = new TreeMap<>();
+
 
             // Loop through each line in the file until the end is reached
             String line;
@@ -414,18 +424,39 @@ public class MainCode {
                     // Store hours worked by the employee on each date
                     String dateString = new SimpleDateFormat("MM/dd/yyyy").format(recordDate);
                     dailyHoursMap.put(dateString, dailyHoursMap.getOrDefault(dateString, 0.0) + hoursWorked);
+                    
+                    // Store late hours by the employee on each date
+                    dailyLateHoursMap.put(dateString, dailyLateHoursMap.getOrDefault(dateString, 0.0) + lateHours);
                 }
             }
 
             // Print total hours worked this month by the employee
-            System.out.println("\nTotal Hours Worked this Month by Employee " + employeeId + ": " + totalHoursThisMonth + " hours");
+            double roundedTotalHoursThisMonth = totalHoursThisMonth;
+            if (totalHoursThisMonth >= 7.90 && totalHoursThisMonth < 8.0) {
+                roundedTotalHoursThisMonth = 8.0;
+            }
+            System.out.println("\nTotal Hours Worked this Month by Employee " + employeeId + ": " + roundedTotalHoursThisMonth + " hours");
             System.out.println("Total Late Hours this Month by Employee " + employeeId + ": " + String.format("%.2f", totalLateHours) + " hours");
 
-            // Print hours worked by the employee on each date
-            System.out.println("\nHours Worked by Employee " + employeeId + " on Each Date:");
+
+         // Print hours worked by the employee and number of late hours on each date
+            System.out.println("\nHours Worked and Late Hours by Employee " + employeeId + " on Each Date:");
             for (Map.Entry<String, Double> entry : dailyHoursMap.entrySet()) {
-                System.out.println(entry.getKey() + " - Hours Worked: " + entry.getValue());
+                String dateString = entry.getKey();
+                double hoursWorked = entry.getValue();
+                
+                // Get the number of late hours for this date
+                double lateHours = dailyLateHoursMap.getOrDefault(dateString, 0.0);
+
+                // Adjust the hours worked if it's between 7.90 and 8.0
+                if (hoursWorked >= 7.90 && hoursWorked < 8.0) {
+                    hoursWorked = 8.0;
+                }
+
+                // Print the hours worked and number of late hours
+                System.out.println(dateString + " - Hours Worked: " + hoursWorked + ", Late Hours: " + lateHours);
             }
+
 
             // Close the BufferedReader to release system resources
             br.close();
@@ -578,6 +609,7 @@ public class MainCode {
         return hourlyRates; // Return the map of hourly rates
     }
 
+    
     // Method to calculate total hours worked for each employee for a specific month
     public static Map<String, Double> calculateTotalHoursWorkedForMonth(String path, String yearMonth) {
         Map<String, Double> totalHours = new HashMap<>(); // Store total hours worked mapped to employee IDs
@@ -599,6 +631,7 @@ public class MainCode {
         }
         return totalHours; // Return the map of total hours worked
     }
+    
     
     
     public static void displayGrossSalariesForMonth(String yearMonth) {
@@ -639,6 +672,7 @@ public class MainCode {
     }
 
 
+    
 	// Calculate and display the gross salary for each employee.
 	// This method has been copied and adjusted from CalculateGrossSalary3
 	public static double calculateGrossSalaryForEmployee(String employeeId, String yearMonth) {
@@ -654,49 +688,55 @@ public class MainCode {
 	}
 	
 	public static void viewNetSalaryOfSpecificEmployee(Scanner scanner) {
-        System.out.print("Enter Employee ID: ");
-        String employeeId = scanner.nextLine();
-        System.out.print("Enter Year and Month (YYYY/MM): ");
-        String yearMonth = scanner.nextLine();
+	    System.out.print("Enter Employee ID: ");
+	    String employeeId = scanner.nextLine();
+	    System.out.print("Enter Year and Month (YYYY/MM): ");
+	    String yearMonth = scanner.nextLine();
 
-        // Calculate the gross salary for the employee
-        double grossSalary = calculateGrossSalaryForEmployee(employeeId, yearMonth);
+	    // Calculate the gross salary for the employee
+	    double grossSalary = calculateGrossSalaryForEmployee(employeeId, yearMonth);
 
-        // Calculate each type of deduction
-        double sssDeduction = calculateSssDeduction(grossSalary);
-        double philhealthDeduction = calculatePhilhealthDeduction(grossSalary);
-        double pagibigDeduction = calculatePagibigDeduction(grossSalary);
-        
-        // Assuming taxable income is grossSalary - total deductions (for simplicity)
-        double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
-        double taxDeduction = calculateTaxDeduction(taxableIncome);
+	    // Calculate each type of deduction
+	    double sssDeduction = calculateSssDeduction(grossSalary);
+	    double philhealthDeduction = calculatePhilhealthDeduction(grossSalary);
+	    double pagibigDeduction = calculatePagibigDeduction(grossSalary);
 
-        // Calculate the net salary
-        double netSalary = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction + taxDeduction);
+	    // Assuming taxable income is grossSalary - total deductions (for simplicity)
+	    double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
+	    double taxDeduction = calculateTaxDeduction(taxableIncome);
 
-     // Display detailed salary information for the current employee
-        System.out.println("Employee ID: " + employeeId + " | Net Salary for " + yearMonth + ": " + netSalary);
-        System.out.println("Gross Salary: " + grossSalary);
-        System.out.println("Total Deductions: ");
-        System.out.println("SSS: " + sssDeduction);
-        System.out.println("Philhealth: " + philhealthDeduction);
-        System.out.println("Pagibig: " + pagibigDeduction);
-        System.out.println("Tax: " + taxDeduction);
-        System.out.println(); // Adding a blank line for better readability
-        
-        // Ask if the user wants to view the breakdown per week
-        System.out.print("View Employee’s Net Salary per Week (Y/N): ");
-        String viewPerWeek = scanner.nextLine();
+	    // Calculate the net salary
+	    double netSalary = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction + taxDeduction);
+	    
+	 // Calculate the total late hours
+	    double totalLateHours = calculateTotalLatenessForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth).getOrDefault(employeeId, 0.0);
 
-        if (viewPerWeek.equalsIgnoreCase("Y")) {
-            // Display the employee's net salary broken down per week for the chosen month
-            displayNetSalaryPerWeek(employeeId, yearMonth, netSalary);
-        } else {
-            // Simply re-show the total net salary of the specific employee for the chosen month
-            System.out.println("Total Net Salary for the month: " + netSalary);
-        }
-    }
+	    // Display detailed salary information for the current employee
+	    System.out.println("Employee ID: " + employeeId + " | Net Salary for " + yearMonth + ": " + netSalary);
+	    System.out.println("Gross Salary: " + grossSalary);
+	    System.out.println("Total Late Hours for the month: " + totalLateHours);
+	    System.out.println("Total Deductions: ");
+	    System.out.println("SSS: " + sssDeduction);
+	    System.out.println("Philhealth: " + philhealthDeduction);
+	    System.out.println("Pagibig: " + pagibigDeduction);
+	    System.out.println("Tax: " + taxDeduction);
+	    System.out.println(); // Adding a blank line for better readability
+
+	    // Ask if the user wants to view the breakdown per week
+	    System.out.print("View Employee’s Net Salary per Week (Y/N): ");
+	    String viewPerWeek = scanner.nextLine();
+
+	    if (viewPerWeek.equalsIgnoreCase("Y")) {
+	        // Display the employee's net salary broken down per week for the chosen month
+	        displayNetSalaryPerWeek(employeeId, yearMonth, netSalary);
+	    } else {
+	        // Simply re-show the total net salary of the specific employee for the chosen month
+	        System.out.println("Total Net Salary for the month: " + netSalary);
+	    }
+	}
+
     
+	
 	// Displaying the Gross Salary of a Specific Employee
 	public static void viewGrossSalaryOfSpecificEmployee(Scanner scanner) {
 	    System.out.print("Enter Employee ID: ");
@@ -707,11 +747,18 @@ public class MainCode {
 	    // Read hourly rates and total hours worked for the given month
 	    Map<String, Double> hourlyRates = readEmployeeData("src/resources/motorPhEmployeeData.csv");
 	    Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
+	    Map<String, Double> totalLateHours = calculateTotalLatenessForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
 
 	    // Calculate the gross salary for the employee
 	    if (hourlyRates.containsKey(employeeId) && totalHoursWorked.containsKey(employeeId)) {
 	        double hourlyRate = hourlyRates.get(employeeId);
 	        double hoursWorked = totalHoursWorked.get(employeeId);
+	        double lateHours = totalLateHours.getOrDefault(employeeId, 0.0);
+	        
+	        // Round hours worked to 8 if it falls between 7.90 to 8
+	        if (hoursWorked >= 7.90 && hoursWorked < 8.0) {
+	            hoursWorked = 8.0;
+	        }
 
 	        // Calculate prorated salary (total hrs worked x hourly pay)
 	        double proratedSalary = hourlyRate * hoursWorked;
@@ -728,9 +775,10 @@ public class MainCode {
 
 	        // Display the result with the total gross salary including allowances
 	        System.out.println("\n Employee ID: " + employeeId + "| Gross Salary: for " + yearMonth + ": " + formattedGrossSalary +
-	        				   "\n Hours Worked: " + formattedHoursWorked +
-	        				   "\n Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " + formattedTotalMonthlyAllowance +  
-	        				   "\n");
+                    		   "\n Hours Worked: " + formattedHoursWorked +
+                    		   "\n Late Hours: " + String.format("%.2f", lateHours) +
+                               "\n Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " + formattedTotalMonthlyAllowance +  
+                               "\n");
 	    } else {
 	        System.out.println("Employee data not found for the given ID or month.");
 	    }
@@ -854,7 +902,7 @@ public class MainCode {
         }
     }
 	
-	// Method to display Payslip of Specific Employee
+ // Method to display Payslip of Specific Employee
     public static void viewPayslipOfSpecificEmployee(Scanner scanner, String employeeDataPath) {
         System.out.print("Enter Employee ID: ");
         String employeeId = scanner.nextLine();
@@ -865,12 +913,12 @@ public class MainCode {
             BufferedReader br = new BufferedReader(new FileReader(employeeDataPath));
             String line;
             boolean employeeFound = false;
-            
+
             while ((line = br.readLine()) != null) {
                 List<String> values = parseCsvLine(line);
                 if (!values.isEmpty() && values.get(0).equals(employeeId)) {
                     employeeFound = true;
-                    
+
                     String firstName = values.get(2); // Assuming First Name is at index 2
                     String lastName = values.get(1); // Assuming Last Name is at index 1
                     String position = values.get(11); // Assuming Position is at index 11
@@ -888,6 +936,9 @@ public class MainCode {
                     // Calculate the net salary
                     double netSalary = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction + taxDeduction);
 
+                    // Calculate the total late hours
+                    double totalLateHours = calculateTotalLatenessForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth).getOrDefault(employeeId, 0.0);
+
                     // Print the payslip with the calculated values
                     System.out.println("");
                     System.out.println("\t\tMOTOR PH PAYSLIP");
@@ -901,6 +952,7 @@ public class MainCode {
                     System.out.println("\tPhilhealth: " + String.format("%,.2f", philhealthDeduction));
                     System.out.println("\tPagibig: " + String.format("%,.2f", pagibigDeduction));
                     System.out.println("\tWithholding Tax: " + String.format("%,.2f", taxDeduction));
+                    System.out.println("\nTotal Late Hours: " + totalLateHours);
                     System.out.println("\nTotal NET SALARY: " + String.format("%,.2f", netSalary));
                     System.out.println("");
                     break;
@@ -914,6 +966,7 @@ public class MainCode {
             e.printStackTrace();
         }
     }
+
     
 
     // Method to check if a given date string falls within a specified year and month
@@ -928,7 +981,7 @@ public class MainCode {
         return recordYearMonth.equals(yearMonth); // Compare with specified yearMonth
     }
 
- // Method to calculate the number of hours worked between two time strings
+    // Method to calculate the number of hours worked between two time strings
     public static double calculateHoursWorked(String timeIn, String timeOut) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm"); // Time format for parsing
         Date dateIn = sdf.parse(timeIn); // Parse time-in string
@@ -947,7 +1000,6 @@ public class MainCode {
     
     
     
-    // Method to calculate the Total Hours that an employee has been late
     public static double calculateLateWorkHours(String timeIn) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         Date expectedTimeIn = sdf.parse("08:00");
@@ -955,6 +1007,16 @@ public class MainCode {
         
         // Check if the employee is late by comparing the actual time in with the expected time in
         if (actualTimeIn.after(expectedTimeIn)) {
+            // If actual time in is after expected time in, but before 08:10, consider it not late
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(expectedTimeIn);
+            cal.add(Calendar.MINUTE, 10); // Add 10 minutes to expected time in
+            Date lateThreshold = cal.getTime();
+            if (actualTimeIn.before(lateThreshold)) {
+                return 0; // Not late if between 08:00 and 08:10
+            }
+            
+            // If actual time in is after 08:10, calculate the late hours
             long differenceInMilliseconds = actualTimeIn.getTime() - expectedTimeIn.getTime();
             // Convert milliseconds to hours
             double differenceInHours = (double) differenceInMilliseconds / (1000 * 60 * 60);
@@ -962,6 +1024,7 @@ public class MainCode {
         }
         return 0; // Return 0 if not late
     }
+
     
     public static Map<String, Double> calculateTotalLatenessForMonth(String path, String yearMonth) {
         Map<String, Double> totalLateness = new HashMap<>(); // Store total lateness hours mapped to employee IDs
