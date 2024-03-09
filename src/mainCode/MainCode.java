@@ -753,7 +753,7 @@ public class MainCode {
         // Calculate each type of deduction
         double sssDeduction = calculateSssDeduction(grossSalary);
         double philhealthDeduction = calculatePhilhealthDeduction(employeeId); // Using employeeId here
-        double pagibigDeduction = calculatePagibigDeduction(grossSalary);
+        double pagibigDeduction = calculatePagibigDeduction(employeeId);
 
         // Assuming taxable income is grossSalary - total deductions (for simplicity)
         double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
@@ -912,7 +912,7 @@ public class MainCode {
             double grossSalary = calculateGrossSalaryForEmployee(employeeId, yearMonth);
             double sssDeduction = calculateSssDeduction(grossSalary);
             double philhealthDeduction = calculatePhilhealthDeduction(employeeId);
-            double pagibigDeduction = calculatePagibigDeduction(grossSalary);
+            double pagibigDeduction = calculatePagibigDeduction(employeeId);
             double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
             double taxDeduction = calculateTaxDeduction(taxableIncome);
             double netSalary = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction + taxDeduction);
@@ -966,15 +966,19 @@ public class MainCode {
     }
 
 
-	public static double calculatePagibigDeduction(double grossSalary) {
-        double contributionRate = grossSalary > PAGIBIG_LOWER_SALARY_CAP ? PAGIBIG_UPPER_RATE : PAGIBIG_LOWER_RATE;
-        double contribution = grossSalary * contributionRate;
+    public static double calculatePagibigDeduction(String employeeId) {
+        // Get the basic salary for the employee
+        double basicSalary = getBasicSalaryForEmployee(employeeId);
+        
+        double contributionRate = basicSalary > PAGIBIG_LOWER_SALARY_CAP ? PAGIBIG_UPPER_RATE : PAGIBIG_LOWER_RATE;
+        double contribution = basicSalary * contributionRate;
 
         // Ensure the contribution does not exceed the maximum amount
         contribution = Math.min(contribution, PAGIBIG_MAXIMUM_CONTRIBUTION);
 
         return contribution;
     }
+
 
 
 	public static double calculatePhilhealthDeduction(String employeeId) {
@@ -1046,7 +1050,7 @@ public class MainCode {
                     // Calculate each type of deduction
                     double sssDeduction = calculateSssDeduction(grossSalary);
                     double philhealthDeduction = calculatePhilhealthDeduction(employeeId);
-                    double pagibigDeduction = calculatePagibigDeduction(grossSalary);
+                    double pagibigDeduction = calculatePagibigDeduction(employeeId);
                     double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
                     double taxDeduction = calculateTaxDeduction(taxableIncome);
 
