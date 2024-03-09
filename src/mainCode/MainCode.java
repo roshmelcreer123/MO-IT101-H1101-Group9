@@ -741,54 +741,55 @@ public class MainCode {
     }
 
 	
-	public static void viewNetSalaryOfSpecificEmployee(Scanner scanner) {
-	    System.out.print("Enter Employee ID: ");
-	    String employeeId = scanner.nextLine();
-	    System.out.print("Enter Year and Month (YYYY/MM): ");
-	    String yearMonth = scanner.nextLine();
+    public static void viewNetSalaryOfSpecificEmployee(Scanner scanner) {
+        System.out.print("Enter Employee ID: ");
+        String employeeId = scanner.nextLine();
+        System.out.print("Enter Year and Month (YYYY/MM): ");
+        String yearMonth = scanner.nextLine();
 
-	    // Calculate the gross salary for the employee
-	    double grossSalary = calculateGrossSalaryForEmployee(employeeId, yearMonth);
+        // Calculate the gross salary for the employee
+        double grossSalary = calculateGrossSalaryForEmployee(employeeId, yearMonth);
 
-	    // Calculate each type of deduction
-	    double sssDeduction = calculateSssDeduction(grossSalary);
-	    double philhealthDeduction = calculatePhilhealthDeduction(grossSalary);
-	    double pagibigDeduction = calculatePagibigDeduction(grossSalary);
+        // Calculate each type of deduction
+        double sssDeduction = calculateSssDeduction(grossSalary);
+        double philhealthDeduction = calculatePhilhealthDeduction(employeeId); // Using employeeId here
+        double pagibigDeduction = calculatePagibigDeduction(grossSalary);
 
-	    // Assuming taxable income is grossSalary - total deductions (for simplicity)
-	    double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
-	    double taxDeduction = calculateTaxDeduction(taxableIncome);
+        // Assuming taxable income is grossSalary - total deductions (for simplicity)
+        double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
+        double taxDeduction = calculateTaxDeduction(taxableIncome);
 
-	    // Calculate the net salary
-	    double netSalary = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction + taxDeduction);
-	    
-	    // Calculate the total late hours
-	    double totalLateHours = calculateTotalLatenessForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth).getOrDefault(employeeId, 0.0);
+        // Calculate the net salary
+        double netSalary = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction + taxDeduction);
+        
+        // Calculate the total late hours
+        double totalLateHours = calculateTotalLatenessForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth).getOrDefault(employeeId, 0.0);
 
-	    // Display detailed salary information for the current employee
-	    System.out.println("\nEmployee ID: " + employeeId + " | Net Salary for " + yearMonth + ": " + netSalary);
-	    System.out.println("Gross Salary: " + grossSalary);
-	    
-	    System.out.println("\nTotal Deductions: ");
-	    System.out.println("SSS: " + sssDeduction);
-	    System.out.println("Philhealth: " + philhealthDeduction);
-	    System.out.println("Pagibig: " + pagibigDeduction);
-	    System.out.println("Tax: " + taxDeduction);
-	    System.out.println("Total Late Hours for the month: " + totalLateHours);
-	    System.out.println(); // Adding a blank line for better readability
+        // Display detailed salary information for the current employee
+        System.out.println("\nEmployee ID: " + employeeId + " | Net Salary for " + yearMonth + ": " + netSalary);
+        System.out.println("Gross Salary: " + grossSalary);
+        
+        System.out.println("\nTotal Deductions: ");
+        System.out.println("SSS: " + sssDeduction);
+        System.out.println("Philhealth: " + philhealthDeduction);
+        System.out.println("Pagibig: " + pagibigDeduction);
+        System.out.println("Tax: " + taxDeduction);
+        System.out.println("Total Late Hours for the month: " + totalLateHours);
+        System.out.println(); // Adding a blank line for better readability
 
-	    // Ask if the user wants to view the breakdown per week
-	    System.out.print("View Employee’s Net Salary per Week (Y/N): ");
-	    String viewPerWeek = scanner.nextLine();
+        // Ask if the user wants to view the breakdown per week
+        System.out.print("View Employee’s Net Salary per Week (Y/N): ");
+        String viewPerWeek = scanner.nextLine();
 
-	    if (viewPerWeek.equalsIgnoreCase("Y")) {
-	        // Display the employee's net salary broken down per week for the chosen month
-	        displayNetSalaryPerWeek(employeeId, yearMonth, netSalary);
-	    } else {
-	        // Simply re-show the total net salary of the specific employee for the chosen month
-	        System.out.println("Total Net Salary for the month: " + netSalary);
-	    }
-	}
+        if (viewPerWeek.equalsIgnoreCase("Y")) {
+            // Display the employee's net salary broken down per week for the chosen month
+            displayNetSalaryPerWeek(employeeId, yearMonth, netSalary);
+        } else {
+            // Simply re-show the total net salary of the specific employee for the chosen month
+            System.out.println("Total Net Salary for the month: " + netSalary);
+        }
+    }
+
 
     
 	
@@ -870,6 +871,29 @@ public class MainCode {
 
 	    return allowances;
 	}
+	
+	public static double getBasicSalaryForEmployee(String employeeId) {
+        // Path to the employee data CSV file
+        String filePath = "src/resources/motorPhEmployeeData.csv";
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            br.readLine(); // Skip the header line
+            while ((line = br.readLine()) != null) {
+                List<String> parts = parseCsvLine(line); // Use parseCsvLine method to handle quoted fields
+                if (parts.get(0).equals(employeeId)) { // Check if the first column (Employee ID) matches the given ID
+                    // Extract and return the Basic Salary from index 13
+                    return Double.parseDouble(parts.get(13).replaceAll(",", ""));
+                }
+            }
+            System.out.println("Employee ID " + employeeId + " not found in the CSV file.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Return 0.0 if the employee ID is not found or if there's an error
+        return 0.0;
+    }
 
 
 
@@ -887,7 +911,7 @@ public class MainCode {
         for (String employeeId : allEmployeeIds) {
             double grossSalary = calculateGrossSalaryForEmployee(employeeId, yearMonth);
             double sssDeduction = calculateSssDeduction(grossSalary);
-            double philhealthDeduction = calculatePhilhealthDeduction(grossSalary);
+            double philhealthDeduction = calculatePhilhealthDeduction(employeeId);
             double pagibigDeduction = calculatePagibigDeduction(grossSalary);
             double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
             double taxDeduction = calculateTaxDeduction(taxableIncome);
@@ -953,26 +977,28 @@ public class MainCode {
     }
 
 
-    public static double calculatePhilhealthDeduction(double grossSalary) {
-        double employeeShare;
+	public static double calculatePhilhealthDeduction(String employeeId) {
+	    double basicSalary = getBasicSalaryForEmployee(employeeId);
 
-        if (grossSalary <= PHILHEALTH_LOWER_SALARY_CAP) {
-            // If salary is at or below the lower cap, the minimum premium applies
-            employeeShare = PHILHEALTH_MINIMUM_PREMIUM / 2; // Employee's share is half of the total premium
-        } else if (grossSalary > PHILHEALTH_LOWER_SALARY_CAP && grossSalary < PHILHEALTH_UPPER_SALARY_CAP) {
-            // For salaries between the lower and upper cap, calculate the premium as 3% of the salary, divided by 2 for the employee's share
-            double totalPremium = (grossSalary * 0.03);
-            employeeShare = totalPremium / 2;
-            // Ensure the employee share does not exceed the maximum or fall below the minimum
-            employeeShare = Math.max(employeeShare, PHILHEALTH_MINIMUM_PREMIUM / 2);
-            employeeShare = Math.min(employeeShare, PHILHEALTH_MAXIMUM_PREMIUM / 2);
-        } else {
-            // For salaries at or above the upper cap, the maximum premium applies
-            employeeShare = PHILHEALTH_MAXIMUM_PREMIUM / 2; // Employee's share is half of the total premium
-        }
+	    double employeeShare;
 
-        return employeeShare;
-    }
+	    if (basicSalary <= PHILHEALTH_LOWER_SALARY_CAP) {
+	        // If salary is at or below the lower cap, the minimum premium applies
+	        employeeShare = PHILHEALTH_MINIMUM_PREMIUM / 2; // Employee's share is half of the total premium
+	    } else if (basicSalary > PHILHEALTH_LOWER_SALARY_CAP && basicSalary < PHILHEALTH_UPPER_SALARY_CAP) {
+	        // For salaries between the lower and upper cap, calculate the premium as 3% of the salary, divided by 2 for the employee's share
+	        double totalPremium = (basicSalary * 0.03);
+	        employeeShare = totalPremium / 2;
+	        // Ensure the employee share does not exceed the maximum or fall below the minimum
+	        employeeShare = Math.max(employeeShare, PHILHEALTH_MINIMUM_PREMIUM / 2);
+	        employeeShare = Math.min(employeeShare, PHILHEALTH_MAXIMUM_PREMIUM / 2);
+	    } else {
+	        // For salaries at or above the upper cap, the maximum premium applies
+	        employeeShare = PHILHEALTH_MAXIMUM_PREMIUM / 2; // Employee's share is half of the total premium
+	    }
+
+	    return employeeShare;
+	}
 
 
     public static double calculateSssDeduction(double grossSalary) {
@@ -993,7 +1019,7 @@ public class MainCode {
         }
     }
 	
- // Method to display Payslip of Specific Employee
+    // Method to display Payslip of Specific Employee
     public static void viewPayslipOfSpecificEmployee(Scanner scanner, String employeeDataPath) {
         System.out.print("Enter Employee ID: ");
         String employeeId = scanner.nextLine();
@@ -1019,7 +1045,7 @@ public class MainCode {
 
                     // Calculate each type of deduction
                     double sssDeduction = calculateSssDeduction(grossSalary);
-                    double philhealthDeduction = calculatePhilhealthDeduction(grossSalary);
+                    double philhealthDeduction = calculatePhilhealthDeduction(employeeId);
                     double pagibigDeduction = calculatePagibigDeduction(grossSalary);
                     double taxableIncome = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction);
                     double taxDeduction = calculateTaxDeduction(taxableIncome);
