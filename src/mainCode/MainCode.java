@@ -1114,10 +1114,11 @@ public class MainCode {
         // Initially calculate the total hours worked without considering the lunch break
         double hoursWorked = (double) difference / (1000 * 60 * 60); // Convert milliseconds to hours
         
-        // Subtract 1 hour for lunch break if the total working hours are more than or equal to 8 hours
-        if(hoursWorked >= 8) {
+        // Subtract 1 hour for lunch break if the total working hours are more than 4 hours
+        if(hoursWorked > 4) {
             hoursWorked -= 1;
         }
+     
         
         // Check if the hours worked fall within the range of 7.83 to 8, and round up to 8 if so
         if (hoursWorked >= 7.83 && hoursWorked <= 8) {
