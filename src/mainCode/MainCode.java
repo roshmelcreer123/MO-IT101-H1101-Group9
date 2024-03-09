@@ -432,14 +432,14 @@ public class MainCode {
 
             // Print total hours worked this month by the employee
             double roundedTotalHoursThisMonth = totalHoursThisMonth;
-            if (totalHoursThisMonth >= 7.90 && totalHoursThisMonth < 8.0) {
+            if (totalHoursThisMonth >= 7.83 && totalHoursThisMonth < 8.0) {
                 roundedTotalHoursThisMonth = 8.0;
             }
             System.out.println("\nTotal Hours Worked this Month by Employee " + employeeId + ": " + roundedTotalHoursThisMonth + " hours");
             System.out.println("Total Late Hours this Month by Employee " + employeeId + ": " + String.format("%.2f", totalLateHours) + " hours");
 
 
-         // Print hours worked by the employee and number of late hours on each date
+            // Print hours worked by the employee and number of late hours on each date
             System.out.println("\nHours Worked and Late Hours by Employee " + employeeId + " on Each Date:");
             for (Map.Entry<String, Double> entry : dailyHoursMap.entrySet()) {
                 String dateString = entry.getKey();
@@ -447,11 +447,16 @@ public class MainCode {
                 
                 // Get the number of late hours for this date
                 double lateHours = dailyLateHoursMap.getOrDefault(dateString, 0.0);
+                
+                // Debugging output to check raw hours worked before adjustment
+                System.out.println("Raw hours worked (before adjustment): " + hoursWorked);
+                
 
                 // Adjust the hours worked if it's between 7.90 and 8.0
-                if (hoursWorked >= 7.90 && hoursWorked < 8.0) {
+                if (hoursWorked >= 7.83 && hoursWorked <= 8.0) {
                     hoursWorked = 8.0;
                 }
+
 
                 // Print the hours worked and number of late hours
                 System.out.println(dateString + " - Hours Worked: " + hoursWorked + ", Late Hours: " + lateHours);
@@ -754,11 +759,6 @@ public class MainCode {
 	        double hourlyRate = hourlyRates.get(employeeId);
 	        double hoursWorked = totalHoursWorked.get(employeeId);
 	        double lateHours = totalLateHours.getOrDefault(employeeId, 0.0);
-	        
-	        // Round hours worked to 8 if it falls between 7.90 to 8
-	        if (hoursWorked >= 7.90 && hoursWorked < 8.0) {
-	            hoursWorked = 8.0;
-	        }
 
 	        // Calculate prorated salary (total hrs worked x hourly pay)
 	        double proratedSalary = hourlyRate * hoursWorked;
@@ -775,7 +775,7 @@ public class MainCode {
 
 	        // Display the result with the total gross salary including allowances
 	        System.out.println("\n Employee ID: " + employeeId + "| Gross Salary: for " + yearMonth + ": " + formattedGrossSalary +
-                    		   "\n Hours Worked: " + formattedHoursWorked +
+                    		   "\n Hours Worked: " + formattedHoursWorked + "| Hourly Rate: " + hourlyRate +
                     		   "\n Late Hours: " + String.format("%.2f", lateHours) +
                                "\n Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " + formattedTotalMonthlyAllowance +  
                                "\n");
@@ -986,7 +986,9 @@ public class MainCode {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm"); // Time format for parsing
         Date dateIn = sdf.parse(timeIn); // Parse time-in string
         Date dateOut = sdf.parse(timeOut); // Parse time-out string
-        long difference = dateOut.getTime() - dateIn.getTime(); // Calculate difference in milliseconds
+        
+        // Calculate the difference in milliseconds
+        long difference = dateOut.getTime() - dateIn.getTime();
         
         // Initially calculate the total hours worked without considering the lunch break
         double hoursWorked = (double) difference / (1000 * 60 * 60); // Convert milliseconds to hours
@@ -995,6 +997,15 @@ public class MainCode {
         if(hoursWorked >= 8) {
             hoursWorked -= 1;
         }
+        
+        // Check if the hours worked fall within the range of 7.83 to 8, and round up to 8 if so
+        if (hoursWorked >= 7.83 && hoursWorked <= 8) {
+            hoursWorked = 8;
+        }
+        
+        // Round the hours worked to two decimal places
+        hoursWorked = Math.round(hoursWorked * 100.0) / 100.0;
+        
         return hoursWorked; // Return the adjusted hoursWorked
     }
     
@@ -1004,26 +1015,39 @@ public class MainCode {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         Date expectedTimeIn = sdf.parse("08:00");
         Date actualTimeIn = sdf.parse(timeIn);
-        
-        // Check if the employee is late by comparing the actual time in with the expected time in
+
+        // Create a calendar instance to handle time calculations
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(expectedTimeIn);
+
+        // Add 10 minutes to the expected time in to set the late threshold
+        cal.add(Calendar.MINUTE, 10);
+        Date lateThreshold = cal.getTime();
+
+        // Check if the employee is late by comparing the actual time in with the late threshold
         if (actualTimeIn.after(expectedTimeIn)) {
-            // If actual time in is after expected time in, but before 08:10, consider it not late
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(expectedTimeIn);
-            cal.add(Calendar.MINUTE, 10); // Add 10 minutes to expected time in
-            Date lateThreshold = cal.getTime();
+            // If actual time in is after expected time in, but before the late threshold, consider it not late
             if (actualTimeIn.before(lateThreshold)) {
                 return 0; // Not late if between 08:00 and 08:10
             }
-            
-            // If actual time in is after 08:10, calculate the late hours
+
+            // If actual time in is after the late threshold, calculate the late hours
             long differenceInMilliseconds = actualTimeIn.getTime() - expectedTimeIn.getTime();
-            // Convert milliseconds to hours
-            double differenceInHours = (double) differenceInMilliseconds / (1000 * 60 * 60);
+            // Convert milliseconds to hours and round to the second decimal place
+            double differenceInHours = ((double) differenceInMilliseconds / (1000 * 60 * 60));
+            differenceInHours = Math.round(differenceInHours * 100.0) / 100.0; // Rounding to two decimal places
+            
+            // Check if differenceInHours falls within the specified range (0.17 to 0)
+            if (differenceInHours > 0 && differenceInHours <= 0.17) {
+                return 0; // Not late if the difference is within the specified range
+            }
+            
             return differenceInHours;
         }
+
         return 0; // Return 0 if not late
     }
+
 
     
     public static Map<String, Double> calculateTotalLatenessForMonth(String path, String yearMonth) {
