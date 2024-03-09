@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.TreeMap;
 
 public class MainCode {
 
@@ -28,11 +29,6 @@ public class MainCode {
         private static final double[] TAX_BASE = {0, 2500, 10833, 40833.33, 200833.33};
         private static final double[] TAX_RATES = {0.2, 0.25, 0.3, 0.32, 0.35};
 	
-	
-        // Global Values - Allowances
-        private static final double RICE_SUBSIDY = 1500.0;
-        private static final double PHONE_ALLOWANCE = 2000.0;
-        private static final double CLOTHING_ALLOWANCE = 1000.0;
 
     // Main method - Entry point of the program
     public static void main(String[] args) {
@@ -87,7 +83,7 @@ public class MainCode {
                     
                 }
                 
-          // Attendance Records 
+            // Attendance Records 
             } else if (choice.equals("2") || choice.equalsIgnoreCase("Attendance Records") || choice.equalsIgnoreCase("AR")) {
                 
             	// Attendance Records options
@@ -131,7 +127,7 @@ public class MainCode {
                 } else if (subChoice.equals("2") || subChoice.equalsIgnoreCase("View Gross Salaries for a Specific Year and Month") || subChoice.equalsIgnoreCase("VGSYM")) {
                 	
                 	System.out.print("Enter year and month (YYYY/MM) to calculate gross salaries: ");
-                    String yearMonth = scanner.next();
+                    String yearMonth = scanner.nextLine();
                     Map<String, Double> hourlyRates = readEmployeeData(employeeDataPath);
                     Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth(attendanceRecordPath, yearMonth);
                     calculateAndDisplayGrossSalaries(hourlyRates, totalHoursWorked); // Calculate and display gross salaries
@@ -447,10 +443,7 @@ public class MainCode {
                 
                 // Get the number of late hours for this date
                 double lateHours = dailyLateHoursMap.getOrDefault(dateString, 0.0);
-                
-                // Debugging output to check raw hours worked before adjustment
-                System.out.println("Raw hours worked (before adjustment): " + hoursWorked);
-                
+              
 
                 // Adjust the hours worked if it's between 7.90 and 8.0
                 if (hoursWorked >= 7.83 && hoursWorked <= 8.0) {
@@ -472,7 +465,15 @@ public class MainCode {
     }
     
     public static void calculateAndDisplayGrossSalaries(Map<String, Double> hourlyRates, Map<String, Double> totalHoursWorked) {
-    	for (String employeeId : hourlyRates.keySet()) {
+        
+    	// Read allowances from the CSV file
+        Map<String, Double[]> allowances = readAllowances("src/resources/motorPhEmployeeData.csv");
+
+        // Sort employee IDs
+        List<String> sortedEmployeeIds = new ArrayList<>(hourlyRates.keySet());
+        Collections.sort(sortedEmployeeIds);
+
+        for (String employeeId : sortedEmployeeIds) {
             double hourlyRate = hourlyRates.getOrDefault(employeeId, 0.0);
             double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
 
@@ -481,21 +482,31 @@ public class MainCode {
             String formattedHoursWorked = String.format("%.2f", hoursWorked);
             String formattedProratedSalary = String.format("%,.2f", proratedSalary);
 
-            // Calculate and format total monthly allowances
-            double totalMonthlyAllowance = RICE_SUBSIDY + PHONE_ALLOWANCE + CLOTHING_ALLOWANCE;
-            String formattedTotalMonthlyAllowance = String.format("%,.2f", totalMonthlyAllowance);
+            // Extract allowances from the allowances map
+            Double[] employeeAllowances = allowances.get(employeeId);
+            if (employeeAllowances != null) {
+                double riceSubsidy = employeeAllowances[0]; // Rice subsidy from column 13
+                double phoneAllowance = employeeAllowances[1]; // Phone allowance from column 14
+                double clothingAllowance = employeeAllowances[2]; // Clothing allowance from column 15
 
-            // Calculate and format gross salary (prorated salary + monthly allowances)
-            double grossSalary = proratedSalary + totalMonthlyAllowance;
-            String formattedGrossSalary = String.format("%,.2f", grossSalary);
+                // Calculate total monthly allowances
+                double totalMonthlyAllowance = riceSubsidy + phoneAllowance + clothingAllowance;
+                String formattedTotalMonthlyAllowance = String.format("%,.2f", totalMonthlyAllowance);
 
+                // Calculate and format gross salary (prorated salary + monthly allowances)
+                double grossSalary = proratedSalary + totalMonthlyAllowance;
+                String formattedGrossSalary = String.format("%,.2f", grossSalary);
 
-            // Display the result with the total gross salary including allowances
-            System.out.println("Employee ID: " + employeeId + "; Hours Worked: " + formattedHoursWorked +
-                    "; Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " +
-                    formattedTotalMonthlyAllowance + "; Gross Salary: " + formattedGrossSalary);
+                // Display the result with the total gross salary including allowances
+                System.out.println("Employee ID: " + employeeId + "; Hours Worked: " + formattedHoursWorked +
+                        "; Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " +
+                        formattedTotalMonthlyAllowance + "; Gross Salary: " + formattedGrossSalary);
+            } else {
+                System.out.println("Employee allowances not found for employee ID: " + employeeId);
+            }
         }
     }
+
 
     // Method to search for an employee in employee data
     // Refactored method to return an EmployeeDetails object
@@ -650,47 +661,85 @@ public class MainCode {
         // Calculate the total hours worked for each employee for the specified month.
         Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth(attendanceRecordPath, yearMonth);
 
-     // Calculate and display the gross salary for each employee.
+        // Read allowances for each employee.
+        Map<String, Double[]> allowances = readAllowances(employeeDataPath);
+
+        // Calculate and display the gross salary for each employee.
         for (String employeeId : hourlyRates.keySet()) {
-            double hourlyRate = hourlyRates.getOrDefault(employeeId, 0.0);
-            double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
+            double grossSalary = calculateGrossSalaryForEmployee(employeeId, yearMonth);
 
-            // Calculate prorated salary (total hrs worked x hourly pay)
-            double proratedSalary = hourlyRate * hoursWorked;
-            String formattedHoursWorked = String.format("%.2f", hoursWorked);
-            String formattedProratedSalary = String.format("%,.2f", proratedSalary);
+            if (grossSalary > 0) {
+                // Get hourly rate and total hours worked
+                double hourlyRate = hourlyRates.getOrDefault(employeeId, 0.0);
+                double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
 
-            // Calculate and format total monthly allowances
-            double totalMonthlyAllowance = RICE_SUBSIDY + PHONE_ALLOWANCE + CLOTHING_ALLOWANCE;
-            String formattedTotalMonthlyAllowance = String.format("%,.2f", totalMonthlyAllowance);
+                // Calculate prorated salary (total hrs worked x hourly pay)
+                double proratedSalary = hourlyRate * hoursWorked;
+                String formattedHoursWorked = String.format("%.2f", hoursWorked);
+                String formattedProratedSalary = String.format("%,.2f", proratedSalary);
 
-            // Calculate and format gross salary (prorated salary + monthly allowances)
-            double grossSalary = proratedSalary + totalMonthlyAllowance;
-            String formattedGrossSalary = String.format("%,.2f", grossSalary);
+                // Extract allowances from the allowances map
+                Double[] employeeAllowances = allowances.get(employeeId);
+                double riceSubsidy = employeeAllowances[0];
+                double phoneAllowance = employeeAllowances[1];
+                double clothingAllowance = employeeAllowances[2];
 
+                // Calculate total monthly allowances
+                double totalMonthlyAllowance = riceSubsidy + phoneAllowance + clothingAllowance;
+                String formattedTotalMonthlyAllowance = String.format("%,.2f", totalMonthlyAllowance);
 
-            // Display the result with the total gross salary including allowances
-            System.out.println("Employee ID: " + employeeId + "; Hours Worked: " + formattedHoursWorked +
-                    "; Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " +
-                    formattedTotalMonthlyAllowance + "; Gross Salary: " + formattedGrossSalary);
+                // Format gross salary
+                String formattedGrossSalary = String.format("%,.2f", grossSalary);
+
+                // Display the result with the total gross salary including allowances
+                System.out.println("Employee ID: " + employeeId + "; Hours Worked: " + formattedHoursWorked +
+                        "; Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " +
+                        formattedTotalMonthlyAllowance + "; Gross Salary: " + formattedGrossSalary);
+            } else {
+                System.out.println("Employee data not found for the given ID or month.");
+            }
         }
     }
 
 
-    
-	// Calculate and display the gross salary for each employee.
-	// This method has been copied and adjusted from CalculateGrossSalary3
-	public static double calculateGrossSalaryForEmployee(String employeeId, String yearMonth) {
-	    Map<String, Double> hourlyRates = readEmployeeData("src/resources/motorPhEmployeeData.csv");
-	    Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
-	
-	    double hourlyRate = hourlyRates.getOrDefault(employeeId, 0.0);
-	    double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
-	    double proratedSalary = hourlyRate * hoursWorked;
-	    double totalMonthlyAllowance = RICE_SUBSIDY + PHONE_ALLOWANCE + CLOTHING_ALLOWANCE;
-	
-	    return proratedSalary + totalMonthlyAllowance;
-	}
+
+    //Calculate Gross Salary
+    public static double calculateGrossSalaryForEmployee(String employeeId, String yearMonth) {
+        // Read hourly rates, total hours worked, and allowances for the given month
+        Map<String, Double> hourlyRates = readEmployeeData("src/resources/motorPhEmployeeData.csv");
+        Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
+        Map<String, Double> totalLateHours = calculateTotalLatenessForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
+        Map<String, Double[]> allowances = readAllowances("src/resources/motorPhEmployeeData.csv");
+
+        // Check if the necessary data is available for the employee
+        if (hourlyRates.containsKey(employeeId) && totalHoursWorked.containsKey(employeeId)) {
+            // Get hourly rate, hours worked, and late hours for the employee
+            double hourlyRate = hourlyRates.get(employeeId);
+            double hoursWorked = totalHoursWorked.get(employeeId);
+            double lateHours = totalLateHours.getOrDefault(employeeId, 0.0);
+
+            // Calculate prorated salary (total hours worked x hourly rate)
+            double proratedSalary = hourlyRate * hoursWorked;
+
+            // Extract allowances from the allowances map
+            Double[] employeeAllowances = allowances.get(employeeId);
+            double riceSubsidy = employeeAllowances[0]; // Rice subsidy from column 13
+            double phoneAllowance = employeeAllowances[1]; // Phone allowance from column 14
+            double clothingAllowance = employeeAllowances[2]; // Clothing allowance from column 15
+
+            // Calculate total monthly allowances
+            double totalMonthlyAllowance = riceSubsidy + phoneAllowance + clothingAllowance;
+
+            // Calculate gross salary (prorated salary + total monthly allowances)
+            double grossSalary = proratedSalary + totalMonthlyAllowance;
+
+            return grossSalary;
+        } else {
+            // Return 0 if necessary data is not available for the employee
+            return 0.0;
+        }
+    }
+
 	
 	public static void viewNetSalaryOfSpecificEmployee(Scanner scanner) {
 	    System.out.print("Enter Employee ID: ");
@@ -713,18 +762,19 @@ public class MainCode {
 	    // Calculate the net salary
 	    double netSalary = grossSalary - (sssDeduction + philhealthDeduction + pagibigDeduction + taxDeduction);
 	    
-	 // Calculate the total late hours
+	    // Calculate the total late hours
 	    double totalLateHours = calculateTotalLatenessForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth).getOrDefault(employeeId, 0.0);
 
 	    // Display detailed salary information for the current employee
-	    System.out.println("Employee ID: " + employeeId + " | Net Salary for " + yearMonth + ": " + netSalary);
+	    System.out.println("\nEmployee ID: " + employeeId + " | Net Salary for " + yearMonth + ": " + netSalary);
 	    System.out.println("Gross Salary: " + grossSalary);
-	    System.out.println("Total Late Hours for the month: " + totalLateHours);
-	    System.out.println("Total Deductions: ");
+	    
+	    System.out.println("\nTotal Deductions: ");
 	    System.out.println("SSS: " + sssDeduction);
 	    System.out.println("Philhealth: " + philhealthDeduction);
 	    System.out.println("Pagibig: " + pagibigDeduction);
 	    System.out.println("Tax: " + taxDeduction);
+	    System.out.println("Total Late Hours for the month: " + totalLateHours);
 	    System.out.println(); // Adding a blank line for better readability
 
 	    // Ask if the user wants to view the breakdown per week
@@ -749,40 +799,78 @@ public class MainCode {
 	    System.out.print("Enter Year and Month (YYYY/MM): ");
 	    String yearMonth = scanner.nextLine();
 
-	    // Read hourly rates and total hours worked for the given month
-	    Map<String, Double> hourlyRates = readEmployeeData("src/resources/motorPhEmployeeData.csv");
-	    Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
-	    Map<String, Double> totalLateHours = calculateTotalLatenessForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
+	    // Calculate gross salary for the employee
+	    double grossSalary = calculateGrossSalaryForEmployee(employeeId, yearMonth);
 
-	    // Calculate the gross salary for the employee
-	    if (hourlyRates.containsKey(employeeId) && totalHoursWorked.containsKey(employeeId)) {
+	    if (grossSalary > 0) {
+	        // Read hourly rates, total hours worked, and allowances for the given month
+	        Map<String, Double> hourlyRates = readEmployeeData("src/resources/motorPhEmployeeData.csv");
+	        Map<String, Double> totalHoursWorked = calculateTotalHoursWorkedForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
+	        Map<String, Double> totalLateHours = calculateTotalLatenessForMonth("src/resources/motorPhAttendanceRecord.csv", yearMonth);
+	        Map<String, Double[]> allowances = readAllowances("src/resources/motorPhEmployeeData.csv");
+
+	        // Get employee details
 	        double hourlyRate = hourlyRates.get(employeeId);
-	        double hoursWorked = totalHoursWorked.get(employeeId);
+	        double hoursWorked = totalHoursWorked.getOrDefault(employeeId, 0.0);
 	        double lateHours = totalLateHours.getOrDefault(employeeId, 0.0);
-
-	        // Calculate prorated salary (total hrs worked x hourly pay)
 	        double proratedSalary = hourlyRate * hoursWorked;
 	        String formattedHoursWorked = String.format("%.2f", hoursWorked);
 	        String formattedProratedSalary = String.format("%,.2f", proratedSalary);
 
-	        // Calculate and format total monthly allowances
-	        double totalMonthlyAllowance = RICE_SUBSIDY + PHONE_ALLOWANCE + CLOTHING_ALLOWANCE;
-	        String formattedTotalMonthlyAllowance = String.format("%,.2f", totalMonthlyAllowance);
+	        // Extract allowances from the allowances map
+	        Double[] employeeAllowances = allowances.get(employeeId);
+	        double riceSubsidy = employeeAllowances[0]; // Rice subsidy from column 13
+	        double phoneAllowance = employeeAllowances[1]; // Phone allowance from column 14
+	        double clothingAllowance = employeeAllowances[2]; // Clothing allowance from column 15
 
-	        // Calculate gross salary (prorated salary + monthly allowances)
-	        double grossSalary = proratedSalary + totalMonthlyAllowance;
+	        // Calculate total monthly allowances
+	        double totalMonthlyAllowance = riceSubsidy + phoneAllowance + clothingAllowance;
+	        String formattedTotalMonthlyAllowance = String.format("%,.2f", totalMonthlyAllowance);
 	        String formattedGrossSalary = String.format("%,.2f", grossSalary);
 
 	        // Display the result with the total gross salary including allowances
 	        System.out.println("\n Employee ID: " + employeeId + "| Gross Salary: for " + yearMonth + ": " + formattedGrossSalary +
-                    		   "\n Hours Worked: " + formattedHoursWorked + "| Hourly Rate: " + hourlyRate +
-                    		   "\n Late Hours: " + String.format("%.2f", lateHours) +
-                               "\n Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " + formattedTotalMonthlyAllowance +  
-                               "\n");
+	                "\n Hours Worked: " + formattedHoursWorked + "| Hourly Rate: " + hourlyRate +
+	                "\n Late Hours: " + String.format("%.2f", lateHours) +
+	                "\n Prorated Salary: " + formattedProratedSalary + " + Monthly Allowances: " + formattedTotalMonthlyAllowance +  
+	                "\n");
 	    } else {
 	        System.out.println("Employee data not found for the given ID or month.");
 	    }
 	}
+
+
+	
+	
+	// Method to read allowances from the CSV file
+	public static Map<String, Double[]> readAllowances(String filePath) {
+	    Map<String, Double[]> allowances = new HashMap<>();
+
+	    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+	        String line;
+	        br.readLine(); // Skip header line
+	        while ((line = br.readLine()) != null) {
+	            List<String> parts = parseCsvLine(line); // Use parseCsvLine method to handle quoted fields
+	            String employeeId = parts.get(0);
+	            try {
+	                // Remove commas from allowance strings before parsing as double
+	                Double riceSubsidy = Double.parseDouble(parts.get(14).replaceAll(",", ""));
+	                Double phoneAllowance = Double.parseDouble(parts.get(15).replaceAll(",", ""));
+	                Double clothingAllowance = Double.parseDouble(parts.get(16).replaceAll(",", ""));
+	                Double[] employeeAllowances = { riceSubsidy, phoneAllowance, clothingAllowance };
+	                allowances.put(employeeId, employeeAllowances);
+	            } catch (NumberFormatException | IndexOutOfBoundsException e) {
+	                System.out.println("Error parsing allowances for employee " + employeeId);
+	                e.printStackTrace();
+	            }
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+
+	    return allowances;
+	}
+
 
 
     
@@ -791,6 +879,9 @@ public class MainCode {
         String yearMonth = scanner.nextLine();
         // Assuming we have a method to get all employee IDs, we need to implement it
         List<String> allEmployeeIds = getAllEmployeeIds(); // This needs to be implemented
+
+        // Sort employee IDs
+        Collections.sort(allEmployeeIds);
 
         // Now we iterate over all employee IDs to calculate and display their net salaries
         for (String employeeId : allEmployeeIds) {
