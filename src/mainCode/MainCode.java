@@ -63,6 +63,7 @@ public class MainCode {
             	// This is where the users can choose between viewing the entire table or viewing one specific employee
             	System.out.println("1. View Specific Employee Details");
                 System.out.println("2. View Entire Employee Data Table");
+                System.out.println("3. Return");
                 System.out.print("Select an option: ");
                 String subChoice = scanner.nextLine().trim();
                 
@@ -77,7 +78,10 @@ public class MainCode {
                 } else if (subChoice.equals("2") || subChoice.equals("View Entire Employee Data Table") || subChoice.equals("VEEDT")) {
                 	 viewEntireEmployeeTable(employeeDataPath); // View entire employee data table
                 	 
-                } else {
+                } else if(subChoice.equals("3") || subChoice.equalsIgnoreCase("Return") || subChoice.equalsIgnoreCase("R")) {
+                	continue; // Restart the loop to display the initial menu options
+                }
+                else {
                 	// Error message when the user inputted an invalid choice
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSED)"); // If user does not input the correct choice
                     
@@ -91,6 +95,7 @@ public class MainCode {
             	System.out.println("1. View Specific Employee Attendance Record");
                 System.out.println("2. View Entire Attendance Record for Specific Year and Month");
                 System.out.println("3. View Entire Attendance Record(All Records)");
+                System.out.println("4. Return");
                 System.out.print("Select an option: ");
                 String subChoice = scanner.nextLine().trim();
                 
@@ -101,7 +106,9 @@ public class MainCode {
                 	viewEntireTableForMonth(attendanceRecordPath, scanner); // View attendance record for a specific year and month
                 } else if (subChoice.equals("3") || subChoice.equalsIgnoreCase("View Entire Attendance Record(All Records)") || subChoice.equalsIgnoreCase("VEAR")) {
                 	 viewEntireAttendanceTable(attendanceRecordPath); // View all attendance records
-               }
+                } else if(subChoice.equals("4") || subChoice.equalsIgnoreCase("Return") || subChoice.equalsIgnoreCase("R")) {
+                	continue; // Restart the loop to display the initial menu options
+                }
                 else {
                 	// Error message when the user inputted an invalid choice
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSEAR)"); // If user does not input the correct choice
@@ -116,6 +123,7 @@ public class MainCode {
                 System.out.println("2. View Gross Salaries for a Specific Year and Month");
                 System.out.println("3. View Net Salary of Specific Employee");
                 System.out.println("4. View All Net Salary Records for a Specific Year and Month");
+                System.out.println("5. Return");
                 System.out.print("Select an option: ");
                 String subChoice = scanner.nextLine().trim();
                 
@@ -140,6 +148,8 @@ public class MainCode {
                 	
                 	viewAllNetSalariesForSpecificMonth(scanner);
                	 
+                } else if(subChoice.equals("5") || subChoice.equalsIgnoreCase("Return") || subChoice.equalsIgnoreCase("R")) {
+                	continue; // Restart the loop to display the initial menu options
                 }
                 else {
                 	// Error message when the user inputted an invalid choice
@@ -153,6 +163,7 @@ public class MainCode {
             	// Payslip Records options
             	// This is where the users can choose between viewing the entire table or viewing one specific employee
             	System.out.println("1. View Payslip of Specific Employee");
+            	System.out.println("2. Return");
                 System.out.print("Select an option: ");
                 String subChoice = scanner.nextLine().trim();
             	
@@ -160,7 +171,10 @@ public class MainCode {
             	// This is the nested if else to call out the different methods to display the employee table or the specific employee
                 if (subChoice.equals("1") || subChoice.equals("View Payslip of Specific Employee") || subChoice.equals("VPSE")) {
                 	 viewPayslipOfSpecificEmployee(scanner, employeeDataPath);
-                } else {
+                } else if(subChoice.equals("2") || subChoice.equalsIgnoreCase("Return") || subChoice.equalsIgnoreCase("R")) {
+                	continue; // Restart the loop to display the initial menu options
+                }
+                else {
                 	// Error message when the user inputted an invalid choice
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSED)"); // If user does not input the correct choice
                 }
