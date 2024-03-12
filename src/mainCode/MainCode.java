@@ -35,8 +35,8 @@ public class MainCode {
         Scanner scanner = new Scanner(System.in); // Scanner object for reading user input
 
         // Define file paths for employee data and attendance records
-        String employeeDataPath = "src/resources/motorPhEmployeeData.csv";
-        String attendanceRecordPath = "src/resources/motorPhAttendanceRecord.csv";
+        String employeeDataPath = System.getProperty("user.dir") + "/src/resources/motorPhEmployeeData.csv";
+        String attendanceRecordPath = System.getProperty("user.dir") + "/src/resources/motorPhAttendanceRecord.csv";
         
         // Display welcome message
         System.out.println("WELCOME TO MOTOR PH PAYROLL SYSTEM");
@@ -59,6 +59,8 @@ public class MainCode {
             // Employee Details
             if (choice.equals("1") || choice.equalsIgnoreCase("Employee Details") || choice.equalsIgnoreCase("ED")) {
             	
+            	while(true) { // Submenu loop
+            		
             	// Sub choices that are specific to the Employee Details
             	// This is where the users can choose between viewing the entire table or viewing one specific employee
             	System.out.println("1. View Specific Employee Details");
@@ -79,17 +81,18 @@ public class MainCode {
                 	 viewEntireEmployeeTable(employeeDataPath); // View entire employee data table
                 	 
                 } else if(subChoice.equals("3") || subChoice.equalsIgnoreCase("Return") || subChoice.equalsIgnoreCase("R")) {
-                	continue; // Restart the loop to display the initial menu options
+                	break; // Restart the loop to display the initial menu options
                 }
                 else {
                 	// Error message when the user inputted an invalid choice
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSED)"); // If user does not input the correct choice
                     
-                }
-                
+                	}
+            	} 
             // Attendance Records 
             } else if (choice.equals("2") || choice.equalsIgnoreCase("Attendance Records") || choice.equalsIgnoreCase("AR")) {
                 
+            	while(true) { // Submenu loop
             	// Attendance Records options
             	// This is where the users can choose between viewing the entire table or viewing one specific employee
             	System.out.println("1. View Specific Employee Attendance Record");
@@ -107,16 +110,17 @@ public class MainCode {
                 } else if (subChoice.equals("3") || subChoice.equalsIgnoreCase("View Entire Attendance Record(All Records)") || subChoice.equalsIgnoreCase("VEAR")) {
                 	 viewEntireAttendanceTable(attendanceRecordPath); // View all attendance records
                 } else if(subChoice.equals("4") || subChoice.equalsIgnoreCase("Return") || subChoice.equalsIgnoreCase("R")) {
-                	continue; // Restart the loop to display the initial menu options
+                	break; // Restart the loop to display the initial menu options
                 }
                 else {
                 	// Error message when the user inputted an invalid choice
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSEAR)"); // If user does not input the correct choice
                 }
             	
-                
+               }
             // Salary Calculations	
             } else if (choice.equals("3") || choice.equalsIgnoreCase("Salary Calculations") || choice.equalsIgnoreCase("SC")) {
+            	while(true) { // Submenu loop
                 // Salary Calculations options
             	// This is where the users can choose between viewing the entire table or viewing one specific employee
             	System.out.println("1. View Gross Salary of Specific Employee");
@@ -149,17 +153,18 @@ public class MainCode {
                 	viewAllNetSalariesForSpecificMonth(scanner);
                	 
                 } else if(subChoice.equals("5") || subChoice.equalsIgnoreCase("Return") || subChoice.equalsIgnoreCase("R")) {
-                	continue; // Restart the loop to display the initial menu options
+                	break; // Restart the loop to display the initial menu options
                 }
                 else {
                 	// Error message when the user inputted an invalid choice
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VNSSE)"); // If user does not input the correct choice
                 }
             	
-            
+            	}
             // Payslip Records
             } else if (choice.equals("4") || choice.equalsIgnoreCase("Payslip Records") || choice.equalsIgnoreCase("PR")) {
             	
+            	while(true) { // Submenu loop
             	// Payslip Records options
             	// This is where the users can choose between viewing the entire table or viewing one specific employee
             	System.out.println("1. View Payslip of Specific Employee");
@@ -172,14 +177,14 @@ public class MainCode {
                 if (subChoice.equals("1") || subChoice.equals("View Payslip of Specific Employee") || subChoice.equals("VPSE")) {
                 	 viewPayslipOfSpecificEmployee(scanner, employeeDataPath);
                 } else if(subChoice.equals("2") || subChoice.equalsIgnoreCase("Return") || subChoice.equalsIgnoreCase("R")) {
-                	continue; // Restart the loop to display the initial menu options
+                	break; // Restart the loop to display the initial menu options
                 }
                 else {
                 	// Error message when the user inputted an invalid choice
                     System.out.println("Invalid choice! You must input the number of your choice, the choice itself, or the first letters of the choice (VSED)"); // If user does not input the correct choice
                 }
             
-                
+            	}   
             // Closing the program
             } else if (choice.equals("5") || choice.equalsIgnoreCase("Exit") || choice.equalsIgnoreCase("E")) {
             	
