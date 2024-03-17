@@ -284,22 +284,31 @@ public class MainCode {
         }
     }
     
-    //test 
+    /**
+     * Displays the entire table for a specified month and year, including employee records, date, time-in, and time-out.
+     * Calculates and prints total hours worked per day and total late hours per day.
+     *
+     * @param path    the file path to read the data from
+     * @param scanner a Scanner object to get user input
+     */
     public static void viewEntireTableForMonth(String path, Scanner scanner) {
+    	
+    	// Prompt the user to enter the year and month
         System.out.print("Enter year and month (YYYY/MM): ");
         String yearMonth = scanner.nextLine();
+        
+        // Define the format string for displaying table data
         String formatString = "| %-10s | %-20s | %-20s | %-20s | %-20s | %-20s |%n";
 
         try {
+        	
+        	// Split the entered year and month
             String[] yearMonthParts = yearMonth.split("/");
             int year = Integer.parseInt(yearMonthParts[0]);
             int month = Integer.parseInt(yearMonthParts[1]);
 
             // Create a BufferedReader to read the file
             BufferedReader br = new BufferedReader(new FileReader(path));
-            
-            // Format string for displaying table data
-            // Employee ID (10), Last Name (20), First Name (20), Date (20), Time-in (20), Time-out (20)
             
             // Skip the header line
             String header = br.readLine();
@@ -309,7 +318,8 @@ public class MainCode {
 
             // Map to store total hours worked per day
             Map<String, Double> dailyHoursMap = new HashMap<>();
-            Map<String, Double> dailyLateHoursMap = new HashMap<>(); // For storing total late hours per day
+            // Map to store total late hours per day
+            Map<String, Double> dailyLateHoursMap = new HashMap<>();
 
             // Loop through each line in the file until the end is reached
             String line;
@@ -328,9 +338,12 @@ public class MainCode {
 
                 // Check if the record belongs to the specified year and month
                 if (recordYear == year && recordMonth == (month - 1)) {
+                	
                     // Calculate and print hours worked
                     double hoursWorked = calculateHoursWorked(csvValues[4], csvValues[5]);
-                    double lateHours = calculateLateWorkHours(csvValues[4]); // Calculate late hours for this record
+                    
+                    // Calculate late hours for the record
+                    double lateHours = calculateLateWorkHours(csvValues[4]);
 
                     
                     // Print each line with formatted output
@@ -340,7 +353,8 @@ public class MainCode {
                     // Update daily hours map
                     String day = sdf.format(recordDate);
                     dailyHoursMap.put(day, dailyHoursMap.getOrDefault(day, 0.0) + hoursWorked);
-                    dailyLateHoursMap.put(day, dailyLateHoursMap.getOrDefault(day, 0.0) + lateHours); // Accumulate late hours
+                    // Accumulate late hours in the daily late hours map
+                    dailyLateHoursMap.put(day, dailyLateHoursMap.getOrDefault(day, 0.0) + lateHours);
                 }
             }
 
